@@ -1,5 +1,5 @@
 # 🐾 Website de Gerenciamento de ONGs - Projeto Caramel
-> Este projeto faz parte do Trabalho de Conclusão de Curso (TCC) e consiste em um sistema de gerenciamento de ONGs desenvolvido utilizando Blazor WebAssembly e .NET 8. O objetivo é facilitar o gerenciamento e a comunicação entre ONGs e seus parceiros, promovendo a adoção responsável de animais e a eficiência nas operações.
+> Este projeto faz parte do Trabalho de Conclusão de Curso (TCC) e consiste em um sistema de gerenciamento de ONGs desenvolvido utilizando Blazor WebAssembly e .NET 8. O objetivo é facilitar o gerenciamento e a comunicação entre ONGs e seus parceiros, promovendo a adoção responsável de animais e a eficiência nas operações. Aqui está disponibilizado o código fonte da aplicação, porém, sem a pipeline de deploy e as chaves de acessos de Banco de dados e da AWS de Homologação e Produção (Estes estão somente sob controle dos responsáveis pelo projeto em um repositório privado por motivos de segurança).
 
 ## ✨ Funcionalidades
 - 🐶 Cadastro de Animais para Adoção: Permite às ONGs cadastrar e atualizar informações detalhadas sobre os animais disponíveis para adoção.
