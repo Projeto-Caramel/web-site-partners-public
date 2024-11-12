@@ -1,0 +1,30 @@
+﻿.register-modal {
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-header {
+    background-color: var(--seal-brown-original);
+    color: var(--caramel-light-90);
+}
+
+    .modal-header i {
+        font-size: 2rem;
+        color: var(--caramel-light-90) !important;
+        cursor: pointer;
+    }
+
+.input-label {
+    font-weight: 600;
+    color: var(--seal-brown-10);
+    margin-bottom: 0.1rem !important;
+}
+
+.btn-back {
+    background-color: var(--brown-minus-60) !important;
+    color: var(--caramel-light-90) !important;
+}
+
+.btn-save {
+    background-color: var(--brown-30) !important;
+    color: var(--caramel-light-90) !important;
+}

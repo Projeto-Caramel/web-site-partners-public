@@ -1,0 +1,145 @@
+@page "/reset/code"
+@using Caramel.Website.Partners.Layout.Components.Custom
+@using Caramel.Website.Partners.Models.Requests
+@using Caramel.Website.Partners.Models.Responses
+@using System.Text.Json
+@using System.Text.Encodings.Web
+@using Caramel.Website.Partners.Models.Responses.Auth
+@inject HttpService httpService
+@inject NavigationManager Navigator
+@inject ISessionStorageService sessionStorage
+@inject IJSRuntime JS
+
+<PageTitle>Confirmação de Acesso</PageTitle>
+
+<PreviousPageLink Class="previous-page-link-desktop" />
+
+<div class="card-login">
+
+    <img src="img/wave.svg" alt="wave-img" class="wave-img-mobile" />
+
+    <div class="card-body">
+        <PreviousPageLink Class="previous-page-link-mobile" />
+        <div class="progress w-100 mb-4">
+            <div class="progress-bar" role="progressbar" style="width: 66%" aria-valuenow="1" aria-valuemin="0" aria-valuemax="3"></div>
+        </div>
+
+        <h2 class="card-title text-center mb-4">Confirmação de Acesso</h2>
+        <p class="text-center">Enviamos em seu Email o seu <span>Código de Confirmação</span> para confirmar a sua Identidade. Digite-o nos campos abaixo.</p>
+
+        <EditForm Model="@codes" OnValidSubmit="HandleConfirmation">
+            <div class="mb-3">
+                <label for="Code" class="form-label login-label">Código</label>
+                <div class="code-confirmation">
+                    <InputText @bind-Value="codes[0]" maxlength="1" class="form-control code-input" id="input-0" @onkeyup="async (KeyboardEventArgs e) => await HandleInput(0, e)" />
+                    <InputText @bind-Value="codes[1]" maxlength="1" class="form-control code-input" id="input-1" @onkeyup="async (KeyboardEventArgs e) => await HandleInput(1, e)" />
+                    <InputText @bind-Value="codes[2]" maxlength="1" class="form-control code-input" id="input-2" @onkeyup="async (KeyboardEventArgs e) => await HandleInput(2, e)" />
+                    <InputText @bind-Value="codes[3]" maxlength="1" class="form-control code-input" id="input-3" @onkeyup="async (KeyboardEventArgs e) => await HandleInput(3, e)" />
+                    <InputText @bind-Value="codes[4]" maxlength="1" class="form-control code-input" id="input-4" @onkeyup="async (KeyboardEventArgs e) => await HandleInput(4, e)" />
+                    <InputText @bind-Value="codes[5]" maxlength="1" class="form-control code-input" id="input-5" @onkeyup="async (KeyboardEventArgs e) => await HandleInput(5, e)" />              
+                </div>
+            </div>
+
+            <ResendEmail />
+
+            <Button Type="BlazorBootstrap.ButtonType.Submit" class="btn login-btn w-100 mb-3" disabled="@isLoading">
+                <span>
+                    Confirmar
+                </span>
+                @if (isLoading)
+                {
+                    <i id="loader" class="bx bx-loader bx-spin"></i>
+                }
+            </Button>
+        </EditForm>
+    </div>
+</div>
+
+<CustomToastNotification @ref="notify" Messages="messages" />
+
+@code {
+    private CustomToastNotification notify;
+    public List<ToastMessage> messages = new();
+    private bool isLoading = false;
+    private string[] codes = new string[6];
+
+    private async Task HandleConfirmation()
+    {
+        isLoading = true;
+
+        var code = CodeInputFormat();
+
+        if (code != string.Empty)
+        {
+            var result = await httpService.PostAsync<object, CodeResponse>($"/auth/partner/verification/validate?userId={sessionStorage.GetItem<string>("id")}&code={code}", null);
+
+            if (result.IsSuccess)
+            {
+                sessionStorage.SetItem("id", result.Content.Data.Id);
+                sessionStorage.SetItem("name", result.Content.Data.Name);
+                sessionStorage.SetItem("token", result.Content.Data.Token);
+                sessionStorage.SetItem("validTo", result.Content.Data.ValidTo);
+
+                Navigator.NavigateTo("/update");
+            }
+            else if (result.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                notify.ShowMessage(ToastType.Warning, "Aviso", "Código Inválido!");
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Danger, "Erro", "Não foi possível realizar a Autenticação. tente novamente mais tarde!");
+            }
+        }
+
+        isLoading = false;
+    }
+
+    private string CodeInputFormat()
+    {
+        string codesResult = string.Empty;
+
+        foreach (var code in codes)
+        {
+            var isNumber = int.TryParse(code, out int result);
+
+            if (isNumber)
+            {
+                codesResult += result.ToString();
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Warning, "Aviso", "Digite apenas números!");
+                break;
+            }
+        }
+
+        return codesResult.Length == 6 ? codesResult : "";
+    }
+
+    #region Change Focus
+    private async Task HandleInput(int index, KeyboardEventArgs e)
+    {
+        if (e.Key == "Backspace" && index > 0)
+        {
+            await JS.InvokeVoidAsync("eval", $"document.getElementById('input-{index - 1}').focus()");
+        }
+        else if (index < 5)
+        {
+            await JS.InvokeVoidAsync("eval", $"document.getElementById('input-{index + 1}').focus()");
+        }
+    }
+    #endregion
+
+    #region SetPageName
+    protected override void OnInitialized()
+    {
+        SetPageName();
+    }
+
+    private void SetPageName()
+    {
+        sessionStorage.SetItem("pageName", "Confirmação de Código");
+    }
+    #endregion
+}

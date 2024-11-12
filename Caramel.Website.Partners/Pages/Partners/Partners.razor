@@ -1,0 +1,151 @@
+﻿@page "/backoffice/partners"
+@using Caramel.Website.Partners.Layout.Components.Cards
+@using Caramel.Website.Partners.Layout.Components.Custom
+@using Caramel.Website.Partners.Layout.Components.Filters
+@using Caramel.Website.Partners.Models.Entities
+@using System.Net.Http.Headers
+@using System.Text.Json
+@using System.Text.Encodings.Web
+@using Caramel.Website.Partners.Models.Entities.Partner
+@using Caramel.Website.Partners.Models.Requests.UsersControl
+@using Caramel.Website.Partners.Models.Responses.UsersControl
+@inject ISessionStorageService sessionStorage
+@inject HttpService httpService
+
+<PageTitle>Parceiros</PageTitle>
+
+<PartnersFilter OnPartnerRegistered="HandlePartnerListUpdate" OnFilterApplied="HandleFilterAsync">
+    <CustomRegisterPartnerModal/>
+</PartnersFilter>
+
+@if (partners is not null)
+{
+    foreach (var partner in partners)
+    {
+        <PartnerCard Data="@partner" OnPartnerDeleted="HandlePartnerListUpdate">
+            <CustomConfirmDeletePartnerModal />
+        </PartnerCard>
+    }
+}
+
+<CustomToastNotification @ref="notify" Messages="messages" />
+
+@code {
+    private IEnumerable<Partner> partners;
+    private CustomToastNotification notify;
+    public List<ToastMessage> messages = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        partners = await GetPartners();
+    }
+
+    private async Task HandleFilterAsync(PartnerFilter filter)
+    {
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
+        GetPartnersFilteredRequest request = new()
+            {
+                PartnerFilter = filter,
+                Pagination = new Models.Entities.Pagination
+                {
+                    Page = 1, 
+                    Size = 100
+                }
+            };
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            var result = await httpService.PostAsync<GetPartnersFilteredRequest, CustomResponse<IEnumerable<Partner>>>("/users-control/partner/filtered", request);
+
+            if (result.IsSuccess)
+            {
+                partners = result.Content.Data;
+                notify.ShowMessage(ToastType.Success, "Sucesso", "Filtrado com sucesso!");
+
+                return;
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Danger, "Erro", "Recuperar os Parceiros filtrada nesse momento. Tente novamente mais tarde!");
+            }
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+        }
+    }
+
+    private async Task<IEnumerable<Partner>> GetPartners(){
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            var result = await httpService.GetAsync<CustomResponse<IEnumerable<Partner>>>("/users-control/partners?page=1&size=100");
+
+            if (result.IsSuccess)
+            {
+                return result.Content.Data;
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Danger, "Erro", "Recuperar os Parceiros nesse momento. Tente novamente mais tarde!");
+            }
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+        }
+
+        return new List<Partner>();
+    }
+
+    private async Task<IEnumerable<Partner>> GetPartnersFiltered()
+    {
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            var result = await httpService.GetAsync<CustomResponse<IEnumerable<Partner>>>("/users-control/partners?page=1&size=5");
+
+            if (result.IsSuccess)
+            {
+                return result.Content.Data;
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Danger, "Erro", "Recuperar os Parceiros nesse momento. Tente novamente mais tarde!");
+            }
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+        }
+
+        return new List<Partner>();
+    }
+
+    private async Task HandlePartnerListUpdate(bool isDeleted)
+    {
+        if (isDeleted)
+        {
+            partners = await GetPartners();
+            StateHasChanged();
+        }
+    }
+
+    #region SetPageName
+    protected override void OnInitialized()
+    {
+        SetPageName();
+    }
+
+    private void SetPageName()
+    {
+        sessionStorage.SetItem("pageName", "Parceiros");
+    }
+    #endregion
+}

@@ -1,0 +1,22 @@
+﻿
+<Toasts class="p-3" Messages="Messages" Delay="6000" Placement="ToastsPlacement.TopRight" />
+
+@code {
+    [Parameter]
+    public List<ToastMessage> Messages { get; set; }
+
+    public void ShowMessage(ToastType toastType, string title, string message)
+    {
+        var toast = new ToastMessage
+            {
+                Type = toastType,
+                Title = title,
+                Message = message,
+                AutoHide = true
+            };
+
+        Messages.Add(toast);
+
+        StateHasChanged();
+    }
+}

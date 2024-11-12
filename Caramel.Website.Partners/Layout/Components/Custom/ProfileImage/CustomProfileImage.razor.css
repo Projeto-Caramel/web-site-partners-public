@@ -1,0 +1,34 @@
+﻿.img-profile, .alternative-profile {
+    height: 12rem;
+    width: 12rem;
+    border-radius: 100px;
+}
+
+.img-profile {
+    object-fit: cover;
+    object-position: center;
+}
+
+.alternative-profile {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--seal-brown-original);
+    font-size: 6rem;
+    color: var(--caramel-light-original)
+}
+
+.file-manager-link {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: center;
+    width: 100%;
+    gap: 2px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--seal-brown-original);
+    text-decoration: none;
+    cursor: pointer;
+}
+

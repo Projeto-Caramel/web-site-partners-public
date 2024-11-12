@@ -1,0 +1,27 @@
+﻿.article {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+}
+
+.loader, .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 2px;
+}
+
+    .loader .loader-icon, .empty .empty-icon {
+        width: fit-content;
+        height: fit-content;
+        color: var(--seal-brown-original);
+        font-size: 3rem;
+    }
+
+    .loader .loader-text, .empty .empty-text {
+        color: var(--seal-brown-original);
+        font-size: 1rem;
+        font-weight: 700;
+    }

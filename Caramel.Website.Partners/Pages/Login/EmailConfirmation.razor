@@ -1,0 +1,93 @@
+﻿@page "/reset/email"
+@using Caramel.Website.Partners.Layout.Components.Custom
+@using Caramel.Website.Partners.Models.Requests
+@using Caramel.Website.Partners.Models.Requests.Auth
+@using Caramel.Website.Partners.Models.Responses
+@using System.Text.Json
+@using System.Text.Encodings.Web
+@using Caramel.Website.Partners.Models.Responses.Auth
+@inject HttpService httpService
+@inject NavigationManager Navigator
+@inject ISessionStorageService sessionStorage
+
+<PageTitle>Confirmação de Acesso</PageTitle>
+
+<PreviousPageLink Class="previous-page-link-desktop"/>
+
+<div class="card-login"> 
+
+    <img src="img/wave.svg" alt="wave-img" class="wave-img-mobile"/>
+
+    <div class="card-body">
+        <PreviousPageLink Class="previous-page-link-mobile"/>
+        <div class="progress w-100 mb-4">
+            <div class="progress-bar" role="progressbar" style="width: 33%" aria-valuenow="1" aria-valuemin="0" aria-valuemax="3"></div>
+        </div>
+
+        <h2 class="card-title text-center mb-4">Recuperação de Senha</h2>
+        <p class="text-center">Digite seu <span>Email</span> para enviarmos um código de confirmação.</p>
+
+        <EditForm Model="@request" OnValidSubmit="HandleConfirmation">
+            <div class="mb-3">
+                <label for="Email" class="form-label">Email</label>
+                <InputText @bind-Value="request.Email" type="email" id="Email" class="form-control" placeholder="Digite seu Email..." required />
+            </div>
+
+            <Button Type="BlazorBootstrap.ButtonType.Submit" class="btn login-btn w-100 mb-3" disabled="@isLoading">
+                <span>
+                    Enviar
+                </span>
+                @if (isLoading)
+                {
+                    <i id="loader" class="bx bx-loader bx-spin"></i>
+                }
+            </Button>
+        </EditForm>
+    </div>
+</div>
+
+<CustomToastNotification @ref="notify" Messages="messages" />
+
+@code {
+    private CustomToastNotification notify;
+    public List<ToastMessage> messages = new();
+    private bool isLoading = false;
+    private EmailRequest request = new EmailRequest();
+
+    private async Task HandleConfirmation()
+    {
+        isLoading = true;
+
+        var result = await httpService.PostAsync<object, EmailResponse>($@"/auth/partner/verification/email?email={request.Email}", null);
+
+        if (result.IsSuccess)
+        {
+            sessionStorage.SetItem("id", result.Content.Id);
+            sessionStorage.SetItem("email", request.Email);
+
+            Navigator.NavigateTo("/reset/code");
+        }
+        else if (result.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity)
+        {
+            notify.ShowMessage(ToastType.Warning, "Aviso", "Email Inválido!");
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Não foi possível realizar o envio de email. tente novamente mais tarde!");
+        }
+
+        isLoading = false;
+    }
+
+    #region SetPageName
+    protected override void OnInitialized()
+    {
+        SetPageName();
+    }
+
+    private void SetPageName()
+    {
+        sessionStorage.SetItem("pageName", "Confirmação de Email");
+    }
+    #endregion
+}

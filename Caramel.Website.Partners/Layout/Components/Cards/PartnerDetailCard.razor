@@ -1,0 +1,66 @@
+﻿@using BlazorBootstrap
+@using Caramel.Website.Partners.Layout.Components.Custom.ProfileImage
+@using Caramel.Website.Partners.Models.Entities
+@using Caramel.Website.Partners.Models.Entities.Partner
+@using Caramel.Website.Partners.Models.Enums
+@inject IJSRuntime JSRuntime
+
+<div class="card mb-3">
+    <div class="card-container">
+        <div class="partner-image-container">
+            @if (Data != null)
+            {
+                <CustomProfileImage ProfileImageUrl="@Data.ProfileImageUrl" Name="@Data.Name" ShowEditLink="false" />
+            }
+        </div>
+        <div class="card-infos">
+            <span class="card-info-title">
+                <i class="bx bxs-info-circle" />
+                Informações
+            </span>
+
+            @if (Data is not null)
+            {
+                <div>
+                    <label class="form-label input-label">Nome</label>
+                    <input class="form-control" value="@Data.Name" placeholder="Nome do Parceiro" disabled />
+                </div>
+
+                <div>
+                    <label class="form-label input-label">Telefone</label>
+                    <input class="form-control" value="@Data.Cellphone" placeholder="Telefone para Contato" disabled />
+                </div>
+
+                <div>
+                    <label class="form-label input-label">Email</label>
+                    <input class="form-control" value="@Data.Email" placeholder="Email" disabled />
+                </div>
+
+                <div>
+                    <label class="form-label input-label">Tipo</label>
+                    <input value="@OrganizationTypeEnumMapper.Mapper[Data.Type]" class="form-control" placeholder="Tipo" disabled />
+                </div>
+
+                <div>
+                    <label class="form-label input-label">Capacidade Máxima de Pets</label>
+                    <input value="@Data.MaxCapacity" class="form-control" disabled />
+                </div>
+
+                <div class="buttons-container">
+                    <button class="btn btn-back" @onclick="GoBack">Voltar</button>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Partner Data { get; set; } = new Partner();
+
+    private async Task GoBack()
+    {
+        await JSRuntime.InvokeVoidAsync("history.back");
+    }
+}

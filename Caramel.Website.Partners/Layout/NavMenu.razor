@@ -1,0 +1,80 @@
+﻿@using Caramel.Website.Partners.Models.Enums
+@inject ISessionStorageService sessionStorage
+
+<div class="d-flex flex-column mh-100 h-100">
+    <div class="top-row navbar">
+        <div class="container-fluid p-0">
+            <div class="navbar-brand" href="">
+                <img src="logos/Caramel.svg" alt="Caramel Logo" />
+            </div>
+            <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </div>
+
+    <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+        <nav class="flex-column custom-nav h-100">
+            <div id="pages">
+                <span class="menu-title">Menu Principal</span>
+                @if (role == Roles.Partner)
+                {
+                    <div class="nav-item">
+                        <NavLink class="nav-link" href="backoffice/dashboard" Match="NavLinkMatch.All">
+                            <i class='bx bxs-dashboard'></i>
+                            <span>Dashboard</span>
+                        </NavLink>
+                    </div>
+                    <div class="nav-item">
+                        <NavLink class="nav-link" href="/backoffice/pets">
+                            <i class='bx bxs-dog'></i>
+                            <span>Cãopanheiros</span>
+                        </NavLink>
+                    </div>
+                }
+                @if (role == Roles.Admin)
+                {
+                    <div class="nav-item">
+                        <NavLink class="nav-link" href="backoffice/partners">
+                            <i class='bx bxs-donate-heart'></i>
+                            <span>Parceiros</span>
+                        </NavLink>
+                    </div>
+                }
+            </div>
+
+            <div id="options">
+                <div class="nav-item nav-item-account mt-auto">
+                    <NavLink class="nav-link" href="/backoffice/profile">
+                        <i class='bx bxs-user-circle'></i>
+                        <span>Perfil</span>
+                    </NavLink>
+                </div>
+                <div class="nav-item mt-auto">
+                    <NavLink class="nav-link" href="/">
+                        <i class='bx bxs-exit'></i>
+                        <span>Sair</span>
+                    </NavLink>
+                </div>
+            </div>
+        </nav>
+    </div>
+</div>
+
+
+@code {
+    private Roles role;
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected override void OnInitialized()
+    {
+        role = sessionStorage.GetItem<Roles>("role");
+    }
+}

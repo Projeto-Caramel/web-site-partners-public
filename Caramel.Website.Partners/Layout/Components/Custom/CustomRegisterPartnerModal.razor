@@ -1,0 +1,133 @@
+﻿@using Caramel.Website.Partners.Models.Enums
+@using Caramel.Website.Partners.Models.Requests.UsersControl
+@using System.Net.Http.Headers
+@using System.Text.Json
+@using System.Text.Encodings.Web
+@using System.Net
+@inject ISessionStorageService sessionStorage
+@inject NavigationManager navigator
+@inject HttpService httpService
+
+<div class="modal register-modal @(IsVisible ? "d-block" : "d-none")" aria-hidden="true" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <EditForm Model="@request" OnValidSubmit="@HandleRegister" class="w-100">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cadastrar Parceiro</h5>
+                    <i class="bx bx-x" @onclick="HideModal" />
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label input-label">Nome</label>
+                        <input class="form-control mb-3" placeholder="Nome do Parceiro" @bind-value="request.Name" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label input-label">Telefone</label>
+                        <input class="form-control mb-3" placeholder="Telefone para Contato" @bind-value="request.Cellphone" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label input-label">Email</label>
+                        <input class="form-control mb-3" placeholder="Email" @bind="request.Email" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label input-label">Tipo do Parceiro</label>
+                        <InputSelect TValue="int" @bind-Value="@request.Type" class="form-select">
+                            <option selected value="0">Tipo</option>
+                            <option value="1">ONG</option>
+                            <option value="2">Projeto Social</option>
+                            <option value="3">Pessoa Física</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label input-label">Capacidade Máxima de Pets</label>
+                        <input type="number" class="form-control mb-3" placeholder="Capacidade Total" @bind="request.MaxCapacity" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-back" @onclick="HideModal">Voltar</button>
+                    <button type="submit" class="btn btn-save @(isDisabled ? "disabled" : "")">Salvar</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<CustomToastNotification @ref="notify" Messages="messages" />
+
+@code {
+    [Parameter]
+    public EventCallback<bool> OnPartnerRegistered { get; set; }
+    public List<ToastMessage> messages = new();
+
+    RegistrationRequest request = new RegistrationRequest();
+    private CustomToastNotification notify;
+    private bool IsVisible = false;
+    private bool isDisabled = false;
+
+    private async Task HandleRegister()
+    {
+        isDisabled = true;
+
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
+        if (request.Type == 0)
+        {
+            notify.ShowMessage(ToastType.Warning, "Aviso", "Selecione um Tipo de Parceiro!");
+            isDisabled = false;
+            return;
+        }
+        else if (string.IsNullOrEmpty(request.Name) || string.IsNullOrEmpty(request.Cellphone) || string.IsNullOrEmpty(request.Email))
+        {
+            notify.ShowMessage(ToastType.Warning, "Aviso", "Preencha todos os campos antes de confirmar!");
+            isDisabled = false;
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            var result = await httpService.PostAsync("/auth/partner/register", request);
+
+            if (result.StatusCode == HttpStatusCode.Created)
+            {
+                notify.ShowMessage(ToastType.Success, "Sucesso", "Parceiro cadastrado com sucesso!");
+                await OnPartnerRegistered.InvokeAsync(true);
+            }
+            else if (result.StatusCode == HttpStatusCode.Unauthorized || result.StatusCode == HttpStatusCode.Forbidden)
+            {
+                notify.ShowMessage(ToastType.Warning, "Não Autorizado", "Você não tem permissão para cadastrar novos parceiros");
+            }
+            else if (result.StatusCode == HttpStatusCode.UnprocessableEntity)
+            {
+                notify.ShowMessage(ToastType.Warning, "Aviso", $"{result.ErrorDetails.FirstOrDefault()}");
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Warning, "Erro", "Não foi possível Adicionar o Parceiro nesse momento. Tente novamente mais tarde!");
+            }
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+        }
+
+        isDisabled = false;
+        HideModal();
+    }
+
+    public void ShowModal()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    void HideModal()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Layout\Components\CustomFilter - Cópia.razor.css" />
+    <None Remove="Pages\Login\CodeConfirmation.razor.css" />
+    <None Remove="Pages\Login\Login.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Pages\Login\CodeConfirmation.razor.css" />
+    <Content Include="Pages\Login\Login.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazor.Bootstrap" Version="3.0.0-preview.3" />
+    <PackageReference Include="Blazor.SessionStorage.WebAssembly" Version="8.0.0" />
+    <PackageReference Include="Flurl.Http" Version="4.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.3" PrivateAssets="all" />
+    <PackageReference Include="MudBlazor" Version="7.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+    <PackageReference Include="Syncfusion.Blazor.ImageEditor" Version="27.1.48" />
+    <PackageReference Include="Syncfusion.Blazor.Themes" Version="27.1.48" />
+  </ItemGroup>
+
+</Project>

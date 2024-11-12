@@ -1,0 +1,89 @@
+﻿@using BlazorBootstrap
+@using System.Text.Json
+@using System.Text.Encodings.Web
+@using Caramel.Website.Partners.Models.Responses;
+@using Caramel.Website.Partners.Models.Responses.Auth
+@using System.Net
+@inherits LayoutComponentBase
+@inject ISessionStorageService sessionStorage
+@inject HttpService httpService
+
+<div class="resend-email mb-3">
+    <span class="@showTimer">Restam:</span>
+    <span class="fw-bold @showTimer">@(timeLeft)s</span>
+    <input type="button" class="btn btn-resend @showButton" value="Reenviar" disabled="@isDisabled" @onclick="HandleButton" />
+</div>
+
+<Toasts class="p-3" Messages="messages" Delay="6000" Placement="ToastsPlacement.TopRight" />
+
+@code {
+    private int timeLeft = 60;
+    private bool isDisabled = true;
+    private string showTimer = string.Empty;
+    private string showButton = string.Empty;
+    private System.Timers.Timer timer;
+
+    protected override void OnInitialized()
+    {
+        timer = new System.Timers.Timer(1000);
+        timer.Elapsed += TimerElapsed;
+        timer.Enabled = true;
+    }
+
+    private void TimerElapsed(Object source, System.Timers.ElapsedEventArgs e)
+    {
+        if (timeLeft > 0)
+        {
+            timeLeft--;
+            InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            timer.Stop();
+            timer.Dispose();
+            isDisabled = false;
+            showTimer = "d-none";
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task HandleButton()
+    {
+        isDisabled = true;
+
+        var email = sessionStorage.GetItem<string>("email");
+
+        var result = await httpService.PostAsync<object, EmailResponse>($@"/auth/partner/verification/email?email={email}", null);
+
+        if (result.StatusCode == HttpStatusCode.OK)
+        {
+            ShowMessage(ToastType.Success, "Sucesso!", "Email enviado com sucesso!");
+        }
+        else if (result.StatusCode == HttpStatusCode.UnprocessableEntity)
+        {
+            ShowMessage(ToastType.Warning, "Aviso", $"Email Inválido: {result.ErrorDetails}");
+        }
+        else
+        {
+            ShowMessage(ToastType.Danger, "Erro", "Não foi possível realizar o envio de email. Tente novamente mais tarde!");
+        }
+
+        showButton = "d-none";
+    }
+
+    #region Notification
+    List<ToastMessage> messages = new List<ToastMessage>();
+
+    public void ShowMessage(ToastType toastType, string title, string message) => messages.Add(CreateToastMessage(toastType, title, message));
+
+    private ToastMessage CreateToastMessage(ToastType toastType, string title, string message)
+    => new ToastMessage
+        {
+            Type = toastType,
+            Title = title,
+            Message = message,
+            AutoHide = true
+        };
+
+    #endregion
+}

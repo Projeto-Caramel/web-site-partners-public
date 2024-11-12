@@ -1,0 +1,94 @@
+﻿@using BlazorBootstrap
+@using Caramel.Website.Partners.Layout.Components.Custom
+@using Caramel.Website.Partners.Models
+@using Caramel.Website.Partners.Models.Entities
+@using Caramel.Website.Partners.Models.Entities.Partner
+@using Caramel.Website.Partners.Models.Entities.Pets
+@using Caramel.Website.Partners.Models.Enums.Pets
+
+<div id="filter">
+    <div id="btn-container">
+        <a class="btn btn-cadastrar" href="/backoffice/pets/register">
+            Cadastrar
+            <i class="bx bx-plus-circle"></i>
+        </a>
+        <button type="button" Class="btn btn-toggle-filter" @onclick="ToggleFilter">
+            @(filterIsVisible ? "Esconder Filtro" : "Mostrar Filtro")
+            <i class="bx @(filterIsVisible ? "bx-chevron-up" : "bx-chevron-down")"></i>
+        </button>
+    </div>
+    
+    <form @onsubmit="@HandleFilter" class="@(filterIsVisible ? "" : "d-none") w-100">
+        <div id="filter-form">
+            <InputText @bind-Value="@request.Name" class="form-control w-100" placeholder="Nome do Parceiro..." />
+
+            <InputSelect TValue="CastratedStatus" @bind-Value="@request.Castrated" class="form-select w-auto">
+                <option selected value="@CastratedStatus.Unknown">Castrado?</option>
+                <option value="@CastratedStatus.Castrated">Sim</option>
+                <option value="@CastratedStatus.NotCastrated">Não</option>
+            </InputSelect>
+
+            <InputSelect TValue="VaccinatedStatus" @bind-Value="@request.Vaccinated" class="form-select w-auto">
+                <option selected value="@VaccinatedStatus.Unknown">Vacinado?</option>
+                <option value="@VaccinatedStatus.Vaccinated">Sim</option>
+                <option value="@VaccinatedStatus.NotVaccinated">Não</option>
+            </InputSelect>
+
+            <DateInput TValue="DateOnly" @bind-Value="@date" Placeholder="Data Cadastro" Class="w-auto" />
+
+            <InputSelect TValue="PetStatus" @bind-Value="@request.Status" class="form-select w-auto status-max-width">
+                <option selected value="@PetStatus.Unknown">Status</option>
+                <option value="@PetStatus.Available">Disponível</option>
+                <option value="@PetStatus.Unavailable">Indisponível</option>
+                <option value="@PetStatus.AdoptApp">Adotado APP</option>
+                <option value="@PetStatus.AdoptOng">Adotado ONG</option>
+            </InputSelect>
+
+            <InputSelect TValue="AgeType" @bind-Value="@request.Age" class="form-select w-auto">
+                <option selected value="@AgeType.Unknown">Idade</option>
+                <option value="@AgeType.Puppy">Filhote</option>
+                <option value="@AgeType.Young">Jovem</option>
+                <option value="@AgeType.Adult">Adulto</option>
+                <option value="@AgeType.Senior">Idoso</option>
+            </InputSelect>
+
+            <InputSelect TValue="PetSex" @bind-Value="@request.Sex" class="form-select w-auto">
+                <option selected value="@PetSex.Unknown">Sexo</option>
+                <option value="@PetSex.Male">Macho</option>
+                <option value="@PetSex.Female">Fêmea</option>
+            </InputSelect>
+
+            <button type="submit" class="btn btn-filtrar w-auto">
+                Filtrar
+                <i class="bx bx-filter-alt"></i>
+            </button>
+        </div>
+        
+    </form>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<PetFilter> OnFilterApplied { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    public  PetFilter request = new();
+
+    private DateOnly date;
+
+    private bool filterIsVisible = false;
+    private string btnShowFilterIcon = "";
+
+    private async Task HandleFilter()
+    {
+        request.RegisterDate = date.ToDateTime(TimeOnly.MinValue);
+        await OnFilterApplied.InvokeAsync(request);
+    }
+
+    private void ToggleFilter()
+    {
+        filterIsVisible = !filterIsVisible;
+    }
+}

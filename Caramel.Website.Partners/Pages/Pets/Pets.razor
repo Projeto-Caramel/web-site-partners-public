@@ -1,0 +1,155 @@
+﻿@page "/backoffice/pets"
+@using Caramel.Website.Partners.Layout.Components.Cards
+@using Caramel.Website.Partners.Layout.Components.Custom
+@using Caramel.Website.Partners.Layout.Components.Custom.Pagination
+@using Caramel.Website.Partners.Layout.Components.Filters
+@using Caramel.Website.Partners.Models.Entities.Partner
+@using Caramel.Website.Partners.Models.Entities.Pets
+@using Caramel.Website.Partners.Models.Requests.PetsControl
+@using System.Net.Http.Headers
+@using System.Text.Json
+@using System.Text.Encodings.Web
+@using Caramel.Website.Partners.Models.Responses.Pets
+@using Caramel.Website.Partners.Models.Responses.UsersControl
+@inject HttpService httpService
+@inject ISessionStorageService sessionStorage
+
+<PageTitle>Cãopanheiros</PageTitle>
+
+<PetsFilter @ref="filterComponent" OnFilterApplied="HandleFilterAsync" />
+
+<Preload LoadingText="Loading..." />
+
+@if (pets is null)
+{
+    <div class="loader">
+        <i class="bx bx-loader bx-spin loader-icon" />
+        <span class="loader-text">Carregando...</span>
+    </div>
+}
+else
+{
+    @if (!pets.Any())
+    {
+        <div class="empty">
+            <i class='bx bx-confused empty-icon' />
+            <span class="empty-text">Nenhum Pet encontrado!</span>
+        </div>
+    }
+    else
+    {
+        foreach (var pets in pets)
+        {
+            <PetCard Data="@pets" />
+        }
+
+        <CustomPagination ActualPage="@actualPage" TotalElements="@total" PageSize="5" PageChanged="HandlePageChange" />
+    }
+}
+
+<CustomToastNotification @ref="notify" Messages="messages" />
+
+@code {
+    [Inject] protected PreloadService PreloadService { get; set; }
+
+    private IEnumerable<Pet> pets;
+    private CustomToastNotification notify;
+    public List<ToastMessage> messages = new();
+
+    private PetsFilter filterComponent;
+
+    private PetFilter petFilter = new();
+    private int total;
+    private int actualPage = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        pets = await GetPets();
+    }
+
+    private async Task<IEnumerable<Pet>> GetPets()
+    {
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+        var partnerId = sessionStorage.GetItem<string>("id");
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            var result = await httpService.GetAsync<CustomPetListResponse>($"/pets-control/pets?partnerId={partnerId}&page=1&size=5");
+
+            if (result.IsSuccess)
+            {
+                total = result.Content.Total;
+                return result.Content.Data;
+            }
+            else
+                notify.ShowMessage(ToastType.Danger, "Erro", "Recuperar os Parceiros nesse momento. Tente novamente mais tarde!");
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+        }
+
+        return new List<Pet>();
+    }
+
+    private async Task<IEnumerable<Pet>> GetFilteredAsync(PetFilter filter)
+    {
+        GetPetsFilteredRequest request = new()
+            {
+                PetFilter = filter,
+                Pagination = new Models.Entities.Pagination
+                {
+                    Page = actualPage,
+                    Size = 5
+                }
+            };
+
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+        var partnerId = sessionStorage.GetItem<string>("id");
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            var result = await httpService.PostAsync<GetPetsFilteredRequest, CustomPetListResponse>($"/pets-control/pets/filtered?partnerId={partnerId}", request);
+
+            if (result.IsSuccess)
+            {
+                total = result.Content.Total;
+                return result.Content.Data;
+            }
+            else notify.ShowMessage(ToastType.Danger, "Erro", "Recuperar os Parceiros nesse momento. Tente novamente mais tarde!");
+        }
+        else notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+
+        return new List<Pet>();
+    }
+
+    private async Task HandleFilterAsync(PetFilter filter)
+    {
+        actualPage = 1;
+        pets = await GetFilteredAsync(filter);
+        StateHasChanged();
+    }
+
+    private async Task HandlePageChange(int pageNumber)
+    {
+        PreloadService.Show();
+        actualPage = pageNumber;
+        pets = await GetFilteredAsync(filterComponent.request);
+        PreloadService.Hide();
+        StateHasChanged();
+    }
+
+    #region SetPageName
+    protected override void OnInitialized()
+    {
+        SetPageName();
+    }
+
+    private void SetPageName()
+    {
+        sessionStorage.SetItem("pageName", "Cãopanheiros");
+    }
+    #endregion
+}

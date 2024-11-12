@@ -1,0 +1,19 @@
+﻿.img-profile, .alternative-profile {
+    height: 3.25rem;
+    width: 3.25rem;
+    border-radius: 100px;
+}
+
+.img-profile {
+    object-fit: cover;
+    object-position: center;
+}
+
+.alternative-profile {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--seal-brown-original);
+    font-size: 1.5rem;
+    color: var(--caramel-light-original)
+}

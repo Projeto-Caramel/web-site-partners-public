@@ -1,0 +1,87 @@
+﻿@using System.Net.Http.Headers
+@using System.Text.Json
+@using System.Text.Encodings.Web
+@using System.Net
+@inject ISessionStorageService sessionStorage
+@inject NavigationManager navigator
+@inject HttpService httpService
+
+<div class="modal register-modal @(isVisible ? "d-block" : "d-none")" aria-hidden="true" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div Model="@id" class="w-100">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cadastrar Parceiro</h5>
+                    <i class="bx bx-x" @onclick="HideModal" />
+                </div>
+                <div class="modal-body">
+                    Você irá deletar esse registro. Após ser deletado, nenhuma informação poderá ser recuperada.
+                    <br />
+                    Você tem certeza que deseja continuar?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-back" @onclick="HideModal">Cancelar</button>
+                    <button type="submit" class="btn btn-save  @(isDisabled ? "disabled" : "")" @onclick="HandleDelete">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<CustomToastNotification @ref="notify" Messages="messages" />
+
+@code {
+    [Parameter]
+    public EventCallback<bool> OnPartnerDeleted { get; set; }
+
+    public List<ToastMessage> messages = new();
+
+    CustomToastNotification notify;
+    string id { get; set; }
+    bool isVisible = false;
+    private bool isDisabled = false;
+
+    public async Task HandleDelete()
+    {
+        isDisabled = true;
+
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            var result = await httpService.DeleteAsync<object>($"/users-control/partners?partnerId={id}", null);
+
+            if (result.StatusCode == HttpStatusCode.OK || result.StatusCode == HttpStatusCode.NoContent)
+            {
+                notify.ShowMessage(ToastType.Success, "Sucesso", "Parceiro deletado com sucesso!");
+                HideModal();
+                await OnPartnerDeleted.InvokeAsync(true);
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Danger, "Erro", "Não foi possível deletar o usuário. Tente novamente mais tarde!");
+            }
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua sessão expirou. Faça login novamente!");
+        }
+
+        HideModal();
+        isDisabled = false;
+    }
+
+    public void ShowModal(string id)
+    {
+        this.id = id;
+        isVisible = true;
+        StateHasChanged();
+    }
+
+    void HideModal()
+    {
+        isVisible = false;
+        StateHasChanged();
+    }
+}

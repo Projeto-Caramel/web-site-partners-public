@@ -1,0 +1,86 @@
+﻿@using Syncfusion.Blazor.ImageEditor
+@using Syncfusion.Blazor.Buttons
+
+<div class="modal register-modal @(modalIsVisible ? "d-block" : "d-none")" aria-hidden="true" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="w-100">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ajuste a imagem do Cãopanheiro</h5>
+                    <i class="bx bx-x" @onclick="HideModal" />
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(Image))
+                    {
+                        <SfImageEditor @ref="editor" Toolbar="customToolbarItems" Height="400px" Width="100%">
+                            <ImageEditorEvents Created="OnImageLoaded" />
+                        </SfImageEditor>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-back" @onclick="HideModal">Cancelar</button>
+                    <button type="submit" class="btn btn-save  @(saveIsDisabled ? "disabled" : "")" @onclick="GetCroppedImageAsync">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    [Parameter]
+    public EventCallback<string> OnImageCropped { get; set; }
+
+    [Parameter]
+    public string Image { get; set; }
+
+    private SfImageEditor editor;
+
+    private List<ImageEditorToolbarItemModel> customToolbarItems = new List<ImageEditorToolbarItemModel>()
+    {
+        new ImageEditorToolbarItemModel { Name = "Zoom" },
+    };
+
+    private bool modalIsVisible = false;
+    private bool saveIsDisabled = true;
+
+    private async void OnImageLoaded()
+    {
+        var imageDataUrl = $"data:image/png;base64,{Image}";
+
+        await editor.OpenAsync(imageDataUrl);
+
+        await Task.Delay(500);
+
+        await editor.SelectAsync("5:7");
+
+        saveIsDisabled = false;
+
+        StateHasChanged();
+    }
+
+
+    public async Task GetCroppedImageAsync()
+    {
+        await editor.CropAsync();
+
+        var croppedImageBytes = await editor.GetImageDataAsync();
+
+        var base64Image = Convert.ToBase64String(croppedImageBytes);
+
+        await OnImageCropped.InvokeAsync(base64Image);
+    }
+
+    public void ShowModal()
+    {
+        modalIsVisible = true;
+        StateHasChanged();
+    }
+
+    public void HideModal()
+    {
+        modalIsVisible = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,83 @@
+﻿#filter {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: fit-content;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+#btn-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+}
+
+    #btn-container .btn-cadastrar {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        border: 2px var(--seal-brown-10) solid;
+        border-radius: 5px;
+        color: var(--seal-brown-10);
+        background-color: var(--brown-90);
+        font-weight: 600;
+    }
+
+    #btn-container .btn-toggle-filter {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        color: var(--caramel-light-90);
+        background-color: var(--seal-brown-40);
+        font-weight: 600;
+    }
+
+#options-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: auto;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+form { 
+    width: 100% !important;
+}
+
+#filter-form {
+    display: flex;
+    flex-direction: row;
+    width: 100% !important;
+    height: auto;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+    #filter-form .btn-filtrar {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        border-radius: 5px;
+        color: white;
+        background-color: var(--licorice-30);
+        font-weight: 600;
+    }
+
+.status-max-width {
+    max-width: 15%;
+}
+
+
+

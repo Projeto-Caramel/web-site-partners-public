@@ -1,0 +1,66 @@
+﻿@using Caramel.Website.Partners.Models.Entities.Pets.Gallery
+@using Caramel.Website.Partners.Models.Responses.Pets
+@inject ISessionStorageService sessionStorage
+@inject HttpService httpService
+
+@if (galleryHasSet)
+{
+    <div class="gallery flex flex-row w-100 align-items-center gap-2">
+        @foreach (var image in gallery)
+        {
+            <CustomPicture Image="image" PetId="@PetId" />
+        }
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public string PetId { get; set; }
+
+    private bool galleryHasSet = false;
+
+    private IEnumerable<PetGalleryImage> gallery;
+
+    private CustomToastNotification notify;
+    private List<ToastMessage> messages = new();
+
+    protected override async void OnParametersSet()
+    {
+        if (!string.IsNullOrEmpty(PetId))
+        {
+            gallery = await InitializePetGallery();
+
+            galleryHasSet = true;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task<IEnumerable<PetGalleryImage>> InitializePetGallery()
+    {
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            var result = await httpService.GetAsync<CustomPetGalleryResponse>($"/pets-control/pets/gallery?petId={PetId}");
+
+            if (result.IsSuccess)
+            {
+                return result.Content.Data;
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Warning, "Aviso", "Não foi possível cadastrar o parceiro nesse momento. Tente novamente mais tarde!");
+            }
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+        }
+
+        return [null, null, null, null, null, null];
+    }
+
+}

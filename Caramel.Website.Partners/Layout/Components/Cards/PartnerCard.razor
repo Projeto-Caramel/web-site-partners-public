@@ -1,0 +1,74 @@
+﻿@using BlazorBootstrap
+@using Caramel.Website.Partners.Layout.Components.Custom
+@using Caramel.Website.Partners.Layout.Components.Custom.ProfileImage
+@using Caramel.Website.Partners.Models.Entities
+@using Caramel.Website.Partners.Models.Entities.Partner
+@using Caramel.Website.Partners.Models.Enums
+@inject NavigationManager navigator
+
+<div class="card">
+    <div class="card-container">
+        <div class="partner-image-container">
+            @if (Data is not null)
+            {
+                <CustomCardProfileImage Username="@Data.Name" ProfileImageUrl="@Data.ProfileImageUrl" />
+            }
+        </div>
+        <div class="card-infos">
+            <div class="card-infos-top">
+                <span class="partner-name">@Data.Name</span>
+                <span class="partner-type">@OrganizationTypeEnumMapper.Mapper[Data.Type]</span>
+            </div>
+
+            <div class="card-infos-bottom">
+                <span class="partner-data">
+                    <span class="info-type">Email:</span>
+                    @Data.Email
+                </span>
+
+                <span class="partner-data">
+                    <span class="info-type">Telefone:</span>
+                    @Data.Cellphone
+                </span>
+            </div>
+        </div>
+        <div class="card-options">
+            <button type="button" class="btn btn-details" @onclick="HandleDetails">
+                Detalhes
+                <i class="bx bx-search-alt" />
+            </button>
+
+            <button type="button" class="btn btn-delete" @onclick="HandleDeleteConfirmation">
+                <i class='bx bxs-trash' />
+            </button>
+        </div>
+    </div>
+</div>
+
+<CustomConfirmDeletePartnerModal @ref="ModalInstance" OnPartnerDeleted="HandlePartnerDeleted" />
+
+@code {
+    [Parameter]
+    public Partner Data { get; set; }
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    [Parameter]
+    public EventCallback<bool> OnPartnerDeleted { get; set; }
+
+    public CustomConfirmDeletePartnerModal ModalInstance { get; private set; }
+
+    private void HandleDetails()
+    {
+        navigator.NavigateTo($"/backoffice/partners/{Data.Id}");
+    }
+
+    private void HandleDeleteConfirmation()
+    {
+        ModalInstance.ShowModal(Data.Id);
+    }
+
+    private async Task HandlePartnerDeleted(bool isDeleted)
+    {
+        await OnPartnerDeleted.InvokeAsync(isDeleted);
+    }
+}

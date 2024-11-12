@@ -1,0 +1,76 @@
+﻿.card {
+    height: fit-content !important;
+    width: 50%;
+    padding: 1rem;
+    margin: 0 auto;
+}
+
+.card-container {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 10px;
+}
+
+.partner-img-container {
+    border-radius: 100px;
+    width: fit-content;
+    height: fit-content;
+}
+
+.partner-image {
+    height: 12rem;
+    width: 12rem;
+    border-radius: 100px;
+    object-fit: cover;
+    object-position: center;
+}
+
+.card-infos {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+}
+
+    .card-infos .card-info-title {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        width: 100%;
+        gap: 2px;
+        color: var(--seal-brown-original);
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .card-infos i {
+        font-size: 1.5rem
+    }
+
+.input-label {
+    font-weight: 600;
+    color: var(--seal-brown-10);
+    margin-bottom: 0.1rem !important;
+}
+
+.buttons-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
+    gap: 10px;
+}
+
+    .buttons-container .btn-back {
+        background-color: var(--brown-minus-60) !important;
+        color: var(--caramel-light-90) !important;
+    }
+
+    .buttons-container .btn-save {
+        background-color: var(--brown-30) !important;
+        color: var(--caramel-light-90) !important;
+    }

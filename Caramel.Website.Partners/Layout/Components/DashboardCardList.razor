@@ -1,0 +1,43 @@
+﻿@using Caramel.Website.Partners.Layout.Components.Custom.ProfileImage
+@using Caramel.Website.Partners.Models
+@using Caramel.Website.Partners.Models.Entities.Pets
+@using Caramel.Website.Partners.Models.Enums.Pets
+
+<div class="card dashboard-list-card">
+    <CustomCardProfileImage ProfileImageUrl="@Pet.Info.ProfileImageUrl" Username="@Pet.Info.Name" />
+    <span class="pet-name">@Pet.Info.Name</span>
+    @if (Pet.Healthy.Vaccinated == VaccinatedStatus.Vaccinated)
+    {
+        <Tooltip Class="d-inline-block" Title="Vacinado">
+            <span class="tag tag-vaccinated">
+                <i class='bx bxs-injection'></i>
+            </span>
+        </Tooltip>
+    }
+    @if (Pet.Healthy.Castrated == CastratedStatus.Castrated)
+    {
+        <Tooltip Class="d-inline-block" Title="Castrado">
+            <span class="tag tag-castrated">
+                <i class='bx bx-cut'></i>
+            </span>
+        </Tooltip>
+    }
+    @if (Pet.Info.Status == PetStatus.AdoptApp ||
+    Pet.Info.Status == PetStatus.AdoptOng)
+    {
+        <span class="status status-adopted">
+            Adotado
+        </span>
+    }
+    else
+    {
+        <span class="status status-available">
+            Disponível
+        </span>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Pet Pet { get; set; }
+}

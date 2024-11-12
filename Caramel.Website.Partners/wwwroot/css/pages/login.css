@@ -1,0 +1,209 @@
+.page-login {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+.login-aside {
+    display: flex;
+    width: 60%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+    .login-aside img {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        object-fit: cover;
+        object-position: center;
+    }
+
+.page-login main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.card-login {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 70% !important;
+    min-width: unset !important;
+    height: fit-content;
+    padding: 1.5rem 1rem !important;
+    min-width: fit-content;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 1px solid rgba(0,0,0,.125);
+    border-radius: 0.25rem;
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25)
+}
+
+.card-body {
+    margin: 1rem !important;
+    width: calc(100% - 2rem) !important;
+}
+
+.card-login .card-body h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    text-align: left !important;
+    color: var(--seal-brown-10);
+    margin-bottom: 0.5rem !important;
+}
+
+.card-login .card-body p {
+    font-weight: 500;
+    text-align: left !important;
+}
+
+    .card-login .card-body p span {
+        font-weight: 600;
+        color: var(--seal-brown-10);
+    }
+
+.login-label {
+    font-weight: 600;
+    color: var(--seal-brown-10);
+    margin-bottom: 0.1rem !important;
+}
+
+.login-input {
+    border-radius: 100px !important;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+    .login-input::placeholder {
+        color: #9E9E9E;
+        font-weight: 500;
+    }
+
+.login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 2px solid var(--seal-brown-10) !important;
+    background-color: var(--seal-brown-10) !important;
+    font-weight: 600;
+    border-radius: 100px;
+    transition: transform 0.25s ease !important;
+    color: var(--caramel-light-90);
+}
+
+    .login-btn:hover {
+        transform: scale(1.05);
+        color: var(--caramel-light-90) !important;
+    }
+
+    .login-btn:disabled {
+        color: var(--caramel-light-90) !important;
+        pointer-events: none !important;
+        background-color: var(--seal-brown-10) !important;
+        opacity: 0.7 !important;
+    }
+
+        .login-btn:disabled i {
+            font-size: 1.2rem !important;
+            font-weight: 600 !important;
+        }
+
+.btn-outline-secondary-login {
+    border: 2px solid var(--seal-brown-10) !important;
+    color: var(--seal-brown-10) !important;
+    font-weight: 600;
+    border-radius: 100px;
+}
+
+    .btn-outline-secondary-login:hover {
+        background-color: transparent;
+        transform: scale(1.05);
+    }
+
+.progress {
+    height: 0.7rem !important;
+    background-color: var(--caramel-light-70) !important;
+}
+
+.progress-bar {
+    background-color: var(--seal-brown-original);
+}
+
+.code-input {
+    width: 100%;
+    text-align: center !important;
+    -moz-appearance: textfield !important;
+}
+
+    .code-input::-webkit-inner-spin-button,
+    .code-input::-webkit-outer-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0 !important;
+    }
+
+.wave-img-mobile {
+    display: none;
+}
+
+.bb-callout{
+    padding: 0.5rem !important;
+}
+
+@media (max-width: 1337px) {
+    .login-aside {
+        width: 40%;
+    }
+}
+
+@media (max-width: 641px) {
+
+    body, #app, .page-login {
+        height: 100svh !important;
+        max-height: 100svh !important;
+    }
+
+    .login-aside {
+        display: none;
+    }
+
+    main {
+        align-items: flex-start !important;
+        padding: 0 !important;
+        height: 100svh !important;
+    }
+
+    .card-login .card-body h2 {
+        font-size: 1.25rem;
+    }
+
+    .card-login {
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 0 !important;
+        align-items: flex-start;
+        height: 100svh !important;
+        padding: 0 !important;
+    }
+
+    .card-body {
+        padding: 0 0.5rem !important;
+    }
+
+    .wave-img-mobile {
+        display: flex;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        object-fit: cover;
+        object-position: center;
+    }
+}

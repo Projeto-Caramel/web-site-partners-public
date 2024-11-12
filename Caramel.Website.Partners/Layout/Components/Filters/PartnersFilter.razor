@@ -1,0 +1,63 @@
+﻿@using BlazorBootstrap
+@using Caramel.Website.Partners.Layout.Components.Custom
+@using Caramel.Website.Partners.Models
+@using Caramel.Website.Partners.Models.Entities
+@using Caramel.Website.Partners.Models.Entities.Partner
+
+<div id="filter">
+    <div id="btn-container">
+        <button class="btn btn-cadastrar" @onclick="ShowModal">
+            Cadastrar
+            <i class="bx bx-plus-circle"></i>
+        </button>
+    </div>
+
+    <EditForm Model="@request" OnValidSubmit="@HandleFilter" class="w-100">
+        <div id="filter-form">
+            <InputText @bind-Value="@request.Name" class="form-control w-auto" placeholder="Nome do Parceiro..." />
+
+            <InputSelect TValue="int" @bind-Value="@request.Type" class="form-select w-auto">
+                <option selected value="0">Tipo</option>
+                <option value="1">ONG</option>
+                <option value="2">Projeto Social</option>
+                <option value="3">Pessoa Física</option>
+            </InputSelect>
+
+            <button type="submit" class="btn btn-filtrar">
+                Filtrar
+                <i class="bx bx-filter-alt"></i>
+            </button>
+        </div>
+        
+    </EditForm>
+</div>
+
+<CustomRegisterPartnerModal @ref="ModalInstance" OnPartnerRegistered="HandlePartnerRegistered" />
+
+@code {
+    [Parameter]
+    public EventCallback<PartnerFilter> OnFilterApplied { get; set; }
+    [Parameter]
+    public EventCallback<bool> OnPartnerRegistered { get; set; }
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    public CustomRegisterPartnerModal ModalInstance { get; private set; }
+
+    private PartnerFilter request = new PartnerFilter();
+
+    private async Task HandleFilter()
+    {
+        await OnFilterApplied.InvokeAsync(request);
+    }
+
+    private void ShowModal()
+    {
+        ModalInstance.ShowModal();
+    }
+
+    private async Task HandlePartnerRegistered(bool isRegistered)
+    {
+        await OnPartnerRegistered.InvokeAsync(isRegistered);
+    }
+}

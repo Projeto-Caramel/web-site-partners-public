@@ -1,0 +1,205 @@
+﻿@page "/backoffice/dashboard"
+@using Caramel.Website.Partners.Layout.Components.Custom
+@using Caramel.Website.Partners.Models
+@using Caramel.Website.Partners.Models.Entities.Pets
+@using Caramel.Website.Partners.Models.Enums.Pets
+@using Caramel.Website.Partners.Models.Responses.UsersControl
+@using Caramel.Website.Partners.Models.Responses.Pets
+@inject ISessionStorageService sessionStorage
+@inject HttpService httpService
+
+<PageTitle>Dashboard</PageTitle>
+
+<link href="~/css/dashboard.css" rel="stylesheet" />
+
+<div class="dashboard-container">
+    @if (allDataIsLoaded)
+    {
+        <div class="charts-container">
+
+            <div class="metrics-container">
+
+                <div id="card-total" class="card">
+                    <div class="metrics-info">
+                        <h4>Total</h4>
+                        <h1>@petsAmount</h1>
+                    </div>
+                    <CustomDoughnutChart Data="totalChartData" MainLabel="Vagas Ocupadas" SecondaryLabel="Vagas Dísponiveis" />
+                </div>
+
+                <div id="card-vaccinated" class="card">
+                    <div class="metrics-info">
+                        <h4>Vacinados</h4>
+                        <h1>@vaccinatedAmount</h1>
+                    </div>
+                    <CustomDoughnutChart Data="vaccinatedChartData" MainLabel="Vacinados" SecondaryLabel="Não Vacinados" />
+                </div>
+
+                <div id="card-castrated" class="card">
+                    <div class="metrics-info">
+                        <h4>Castrados</h4>
+                        <h1>@castratedAmount</h1>
+                    </div>
+                    <CustomDoughnutChart Data="castratedChartData" MainLabel="Castrados" SecondaryLabel="Não Castrados" />
+                </div>
+
+                <div id="card-adopted" class="card">
+                    <div class="metrics-info">
+                        <h4>Adotados</h4>
+                        <div id="adoption-info">
+                            <h1>@adoptedAmount</h1>
+                            <h5>(mês)</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="historict-container card">
+
+                <CustomStackedBarChart Data="historicData" MainLabel="ONG" SecondaryLabel="APP" />
+            </div>
+        </div>
+
+        <div class="list-container">
+            @foreach (var pet in pets)
+            {
+                <DashboardCardList Pet="pet" />
+            }
+        </div>
+    }
+    else
+    {
+        <div class="charts-container">
+
+            <div class="metrics-container">
+
+                <div id="card-total" class="card">
+                    <MudSkeleton Animation="Animation.Wave" Width="100%" Height="100%" />
+                </div>
+
+                <div id="card-vaccinated" class="card">
+                    <MudSkeleton Animation="Animation.Wave" Width="100%" Height="100%" />
+                </div>
+
+                <div id="card-castrated" class="card">
+                    <MudSkeleton Animation="Animation.Wave" Width="100%" Height="100%" />
+                </div>
+
+                <div id="card-adopted" class="card">
+                    <MudSkeleton Animation="Animation.Wave" Width="100%" Height="100%" />
+                </div>
+            </div>
+
+            <div class="historict-container card">
+                <MudSkeleton Animation="Animation.Wave" Width="100%" Height="100%" />
+            </div>
+        </div>
+
+        <div class="list-container">
+            @for (int i = 0; i < 10; i++)
+            {
+                <MudSkeleton Animation="Animation.Wave" Width="100%" Height="100%" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private string partnerId = string.Empty;
+
+    // Metrics
+    private DashboardData dashboard = null;
+    private DoughnutChartData totalChartData = null;
+    private DoughnutChartData vaccinatedChartData = null;
+    private DoughnutChartData castratedChartData = null;
+    private int adoptedAmount = 0;
+    private int petsAmount = 0;
+    private int vaccinatedAmount = 0;
+    private int castratedAmount = 0;
+    private List<Pet> pets = new();
+
+    private bool allDataIsLoaded = false;
+
+    // Historic
+    List<double?> appHistoric = null;
+    List<double?> ongHistoric = null;
+    private BarChartData historicData = null;
+
+    private CustomToastNotification notify;
+
+    protected override async void OnInitialized()
+    {
+        partnerId = sessionStorage.GetItem<string>("id");
+        dashboard = await GetPartners();
+        AssignVariables();
+        SetPageName();
+
+        allDataIsLoaded = true;
+
+        StateHasChanged();
+    }
+
+    private async Task<DashboardData> GetPartners()
+    {
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            var result = await httpService.GetAsync<CustomDashboardPetResponse>($"/pets-control/dashboard?partnerId={partnerId}");
+
+            if (result.IsSuccess)
+            {
+                return result.Content.Data;
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Danger, "Erro", "Recuperar os Parceiros nesse momento. Tente novamente mais tarde!");
+            }
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+        }
+
+        return new DashboardData();
+    }
+
+    private void AssignVariables()
+    {
+        totalChartData = new((int)dashboard.CapacityData.UsedCapacityPercentage, (int)dashboard.CapacityData.UnusedCapacityPercentage, "#582704", "#925318");
+        vaccinatedChartData = new((int)dashboard.VaccinatedData.VaccinatedPercentage, (int)dashboard.VaccinatedData.NotVaccinatedPercentage, "#41250B", "#EDBD90");
+        castratedChartData = new((int)dashboard.CastratedData.CastratedPercentage, (int)dashboard.CastratedData.NotCastratedPercentage, "#311C08", "#EDBD90");
+
+        petsAmount = (int)(dashboard.CapacityData.MaxCapacity * dashboard.CapacityData.UsedCapacityPercentage / 100);
+        vaccinatedAmount = dashboard.VaccinatedData.VaccinatedAmount;
+        castratedAmount = dashboard.CastratedData.CastratedAmount;
+        adoptedAmount = dashboard.AdoptedData.AdoptedAmount;
+
+        historicData = CompleteHistoricData();
+
+        pets = dashboard.Pets;
+    }
+
+    private BarChartData CompleteHistoricData()
+    {
+        List<double?> adoptedOng = new();
+        List<double?> adoptedApp = new();
+
+        for (int i = 11; i >= 0; i--)
+        {
+            adoptedOng.Add(dashboard.DadosUltimoAno[i].AdotadosOng);
+            adoptedApp.Add(dashboard.DadosUltimoAno[i].AdotadosApp);
+        }
+
+        return new(adoptedOng, adoptedApp);
+    }
+
+    #region SetPageName
+    private void SetPageName()
+    {
+        sessionStorage.SetItem("pageName", "Dashboard");
+    }
+    #endregion
+}
+

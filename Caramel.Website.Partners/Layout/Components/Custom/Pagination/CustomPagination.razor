@@ -1,0 +1,36 @@
+﻿<Pagination TotalPages="@totalPages" ActivePageNumber="@ActualPage" Alignment="Alignment.End" PageChanged="PageChanged" Class="mb-3"/>
+
+@code {
+    [Parameter]
+    public int TotalElements { get; set; }
+    [Parameter]
+    public int ActualPage { get; set; }
+    [Parameter]
+    public int PageSize { get; set; }
+    [Parameter]
+    public EventCallback<int> PageChanged { get; set; }
+
+    private int totalPages = 0;
+
+    protected override void OnParametersSet()
+    {
+        SetTotalPages();
+    }
+
+    private void SetTotalPages()
+    {
+        if (PageSize > 0)
+        {
+            totalPages = (int)Math.Ceiling(TotalElements / (double)PageSize);
+        }
+        else
+        {
+            totalPages = 0;
+        }
+    }
+
+    private async Task HandlePageChanged(int newPageNumber)
+    {
+        await PageChanged.InvokeAsync(newPageNumber);
+    }
+}

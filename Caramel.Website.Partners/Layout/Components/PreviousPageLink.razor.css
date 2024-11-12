@@ -1,0 +1,40 @@
+﻿body {
+}
+
+.previous-page-link-mobile, .previous-page-link-desktop {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    width: 70%;
+    gap: 5px;
+    color: var(--seal-brown-original);
+    text-decoration: none !important;
+    transition: transform 0.2s ease !important;
+}
+
+.previous-page-link-mobile {
+    display: none;
+}
+
+.previous-page-link-desktop {
+    display: flex;
+}
+
+.previous-page-link-mobile span, .previous-page-link-desktop span {
+    text-decoration: underline;
+}
+
+.previous-page-link-mobile:hover, .previous-page-link-desktop:hover {
+    transform: scale(1.01);
+    cursor: pointer;
+}
+
+@media (max-width: 641px) {
+    .previous-page-link-mobile {
+        display: flex;
+    }
+
+    .previous-page-link-desktop {
+        display: none;
+    }
+}

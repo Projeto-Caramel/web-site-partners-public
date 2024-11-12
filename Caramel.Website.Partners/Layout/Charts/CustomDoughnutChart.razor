@@ -1,0 +1,61 @@
+﻿@using Caramel.Website.Partners.Models
+
+<DoughnutChart @ref="chart" class="doughnut-chart" />
+
+@code {
+    [Parameter]
+    public DoughnutChartData Data { get; set; }
+    [Parameter]
+    public string MainLabel { get; set; }
+    [Parameter]
+    public string SecondaryLabel { get; set; }
+
+    private DoughnutChart chart = default!;
+    private ChartData chartData = default!;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        chartData = new ChartData
+            {
+                Labels = GetDataLabels(MainLabel, SecondaryLabel),
+                Datasets = GetDefaultDataSets(Data)
+            };
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await chart.InitializeAsync(chartData, ReturnOptions());
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private DoughnutChartOptions ReturnOptions()
+    {
+        var options = new DoughnutChartOptions();
+        options.Responsive = true;
+        options.Plugins.Title!.Text = "";
+        options.Plugins.Title.Display = false;
+        options.Plugins.Legend.Display = false;
+
+        return options;
+    }
+
+    #region Data Preparation
+
+    private List<IChartDataset> GetDefaultDataSets(DoughnutChartData data) => new List<IChartDataset> { GetDoughnutChartDataset(data) };
+
+    private DoughnutChartDataset GetDoughnutChartDataset(DoughnutChartData data)
+    {
+        return new() { Label = "Total (%)", Data = GetData(data.MainData, data.SecondaryData), BackgroundColor = GetBackgroundColors(data.MainColor, data.SecondaryColor) };
+    }
+
+    private List<double?> GetData(double mainData, double secondaryData) => new List<double?> { mainData, secondaryData };
+
+    private List<string> GetBackgroundColors(string mainColor, string secondaryColor) => new List<string> { mainColor, secondaryColor };
+
+    private List<string> GetDataLabels(string mainData, string secondaryData) => new List<string> { mainData, secondaryData };
+
+    #endregion  Data Preparation
+}

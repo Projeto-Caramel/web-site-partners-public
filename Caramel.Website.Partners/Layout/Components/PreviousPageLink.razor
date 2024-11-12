@@ -1,0 +1,19 @@
+﻿@using BlazorBootstrap
+@inherits LayoutComponentBase
+@inject NavigationManager navigator
+@inject IJSRuntime JSRuntime
+
+<a class="@Class mb-2" @onclick="GoBack">
+    <i class='bx bx-arrow-back' />
+    <span>Voltar para a página anterior</span>
+</a>
+
+@code {
+    [Parameter]
+    public string Class { get; set; }
+
+    private async Task GoBack()
+    {
+        await JSRuntime.InvokeVoidAsync("history.back");
+    }
+}

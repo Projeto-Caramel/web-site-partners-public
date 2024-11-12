@@ -1,0 +1,339 @@
+﻿@page "/backoffice/pets/register"
+@using Caramel.Website.Partners.Layout.Components.Custom
+@using Caramel.Website.Partners.Layout.Components.Custom.ProfileImage
+@using Caramel.Website.Partners.Models.Entities.Pets
+@using Caramel.Website.Partners.Models.Enums.Pets
+@using System.Net.Http.Headers
+@using System.Text.Json
+@using System.Text.Encodings.Web
+@using Caramel.Website.Partners.Models.Requests.PetsControl
+@using Caramel.Website.Partners.Models.Responses.Pets
+@inject ISessionStorageService sessionStorage
+@inject NavigationManager navigator
+@inject HttpClient http
+@inject NavigationManager navigator
+@inject HttpService httpService
+
+<EditForm Model="@data" OnValidSubmit="@HandleSubmit">
+    <div id="profile-container">
+        <div id="profile-basic-info-container">
+            <div id="profile-image-container">
+                <CustomProfileImage ProfileImageUrl="@imageUrl" Name="@data.Info.Name" ImageChanged="OnImageChanged" />
+            </div>
+            <div id="basic-info-container">
+                <div class="info-inputs-line">
+                    <div class="basic-info-input-div w-100">
+                        <div class="w-100">
+                            <label class="form-label input-label">Nome do Pet</label>
+                            <InputText type="text" class="form-control partner-description" @bind-Value="@data.Info.Name" required />
+                        </div>
+
+                        <div class="w-auto">
+                            <label class="form-label input-label">Idade do Pet</label>
+                            <InputNumber TValue="int" class="form-control partner-description" @bind-Value="@age" required />
+                        </div>
+                        <div class="w-25">
+                            <InputSelect TValue="AgeUnit" @bind-Value="@ageUnit" class="form-select" required>
+                                <option value="@AgeUnit.Year">@(age > 1 ? "Anos" : "Ano")</option>
+                                <option value="@AgeUnit.Month">@(age > 1 ? "Meses" : "Mes")</option>
+                            </InputSelect>
+                        </div>
+                    </div>
+                </div>
+                <div id="partner-description-container">
+                    <label class="form-label input-label">Descrição</label>
+                    <textarea class="form-control partner-description" @bind="@data.Info.Description" @oninput="@UpdateDescriptionSize" maxlength="1000" required></textarea>
+                    <span class="description-counter">@descrioptionSize/1000</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="details-info-container">
+            <span id="detail-info-title">Saúde</span>
+
+            <div id="info-inputs-container">
+                <div class="info-inputs-line">
+                    <div class="info-input-div w-100">
+                        <label class="form-label input-label">Castrado?</label>
+                        <InputSelect TValue="CastratedStatus" @bind-Value="@data.Healthy.Castrated" class="form-select" required>
+                            <option value="@CastratedStatus.Castrated">Sim</option>
+                            <option value="@CastratedStatus.NotCastrated">Não</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="info-input-div w-100">
+                        <label class="form-label input-label">Vacinado?</label>
+                        <InputSelect TValue="VaccinatedStatus" @bind-Value="@data.Healthy.Vaccinated" class="form-select" required>
+                            <option value="@VaccinatedStatus.Vaccinated">Sim</option>
+                            <option value="@VaccinatedStatus.NotVaccinated">Não</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="info-input-div w-100">
+                        <label class="form-label input-label">Necessicades Especiais</label>
+                        <InputSelect TValue="SpecialNeedsType" @bind-Value="@data.Caracteristics.SpecialNeeds" class="form-select" required>
+                            <option value="@SpecialNeedsType.No">Não</option>
+                            <option value="@SpecialNeedsType.Diabetic">Diabético</option>
+                            <option value="@SpecialNeedsType.ContinuousCare">Cuidados Contínuos</option>
+                        </InputSelect>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="details-info-container">
+            <span id="detail-info-title">Características Físicas</span>
+
+            <div id="info-inputs-container">
+                <div class="info-inputs-line">
+                    <div class="info-input-div w-100">
+                        <label class="form-label input-label">Porte</label>
+                        <InputSelect TValue="SizeType" @bind-Value="@data.Caracteristics.Size" class="form-select" required>
+                            <option value="@SizeType.Small">Pequeno</option>
+                            <option value="@SizeType.Medium">Médio</option>
+                            <option value="@SizeType.Large">Grande</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="info-input-div w-100">
+                        <label class="form-label input-label">Sexo</label>
+                        <InputSelect TValue="PetSex" @bind-Value="@data.Caracteristics.Sex" class="form-select" required>
+                            <option value="@PetSex.Female">Fêmea</option>
+                            <option value="@PetSex.Male">Macho</option>
+                        </InputSelect>
+                    </div>
+                </div>
+                <div class="info-inputs-line">
+                    <div class="info-input-div w-100">
+                        <label class="form-label input-label">Pelagem</label>
+                        <InputSelect TValue="CoatType" @bind-Value="@data.Caracteristics.Coat" class="form-select" required>
+                            <option value="@CoatType.Short">Curto</option>
+                            <option value="@CoatType.Medium">Médio</option>
+                            <option value="@CoatType.Long">Longo</option>
+                            <option value="@CoatType.Hairless">Sem pelo</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="info-input-div w-100">
+                        <label class="form-label input-label">Queda de Pelo</label>
+                        <InputSelect TValue="SheddingType" @bind-Value="@data.Caracteristics.Shedding" class="form-select" required>
+                            <option value="@SheddingType.ShedsLittle">Baixa</option>
+                            <option value="@SheddingType.ShedsSeasonally">Sazional</option>
+                            <option value="@SheddingType.ShedsALot">Alta</option>
+                        </InputSelect>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="details-info-container">
+            <span id="detail-info-title">Características Comportamentais</span>
+
+            <div id="info-inputs-container">
+                <div class="info-inputs-line">
+                    <div class="info-input-div w-100">
+                        <label class="form-label input-label">Nível de Energia</label>
+                        <InputSelect TValue="EnergyLevelType" @bind-Value="@data.Caracteristics.EnergyLevel" class="form-select" required>
+                            <option value="@EnergyLevelType.Low">Baixo</option>
+                            <option value="@EnergyLevelType.Medium">Médio</option>
+                            <option value="@EnergyLevelType.High">Alto</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="info-input-div w-100">
+                        <label class="form-label input-label">Nível de Estímulo de Atividades Físicas</label>
+                        <InputSelect TValue="StimulusLevelType" @bind-Value="@data.Caracteristics.StimulusLevel" class="form-select" required>
+                            <option value="@StimulusLevelType.Low">Baixo</option>
+                            <option value="@StimulusLevelType.Moderate">Moderado</option>
+                            <option value="@StimulusLevelType.High">Alto</option>
+                        </InputSelect>
+                    </div>
+                </div>
+                <div class="info-inputs-line">
+                    <div class="info-input-div w-100">
+                        <label class="form-label input-label">Temperamento</label>
+                        <InputSelect TValue="TemperamentType" @bind-Value="@data.Caracteristics.Temperament" class="form-select" required>
+                            <option value="@TemperamentType.VeryFriendly">Muito Amigável</option>
+                            <option value="@TemperamentType.ShyFriendly">Um pouco Amigável</option>
+                            <option value="@TemperamentType.NotFriendly">Não Amigável</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="info-input-div w-100">
+                        <label class="form-label input-label">Socialização com outros Pets</label>
+                        <InputSelect TValue="AnimalsSocializationType" @bind-Value="@data.Caracteristics.AnimalsSocialization" class="form-select" required>
+                            <option value="@AnimalsSocializationType.Friendly">Amigável</option>
+                            <option value="@AnimalsSocializationType.SameSpeciesOnly">Somente cachorros</option>
+                            <option value="@AnimalsSocializationType.OnlyPet">Não Amigável</option>
+                        </InputSelect>
+                    </div>
+
+                    <div class="info-input-div w-100">
+                        <label class="form-label input-label">Socialização com crianças</label>
+                        <InputSelect TValue="ChildLoveType" @bind-Value="@data.Caracteristics.ChildLove" class="form-select" required>
+                            <option value="@ChildLoveType.No">Não Amigável</option>
+                            <option value="@ChildLoveType.Tolerant">Tolerante</option>
+                            <option value="@ChildLoveType.Loves">Ama Crianças</option>
+                        </InputSelect>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="options mb-3">
+            <button type="submit" @onclick="HandleBack" class="btn btn-back">
+                Voltar
+                @if (isLoading)
+                {
+                    <i id="loader" class="bx bx-loader bx-spin"></i>
+                }
+            </button>
+            <button type="submit" class="btn btn-save" disabled="@isLoading">
+                Confirmar
+                @if (isLoading)
+                {
+                    <i id="loader" class="bx bx-loader bx-spin"></i>
+                }
+            </button>
+        </div>
+    </div>
+</EditForm>
+
+<CustomToastNotification @ref="notify" Messages="messages" />
+
+@code {
+    private Pet data = new Pet();
+
+    private CustomToastNotification notify;
+    public List<ToastMessage> messages = new();
+
+    private int descrioptionSize;
+    private bool isLoading = false;
+    private int age = 0;
+    private AgeUnit ageUnit = AgeUnit.Year;
+
+    string base64Image = string.Empty;
+    string imageUrl = string.Empty;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        data.PartnerId = sessionStorage.GetItem<string>("id");
+        data.Info.Status = PetStatus.Available;
+        imageUrl = data.Info.ProfileImageUrl;
+        base64Image = await ImageUrlToBase64(data.Info.ProfileImageUrl);
+    }
+
+    private void HandleBack()
+    {
+        navigator.NavigateTo($"/backoffice/pets");
+    }
+
+    private void OnImageChanged(string newBase64Image)
+    {
+        imageUrl = $"data:image/png;base64,{newBase64Image}";
+        base64Image = newBase64Image;
+        StateHasChanged();
+    }
+
+    private async Task HandleSubmit()
+    {
+        isLoading = true;
+
+        var imageIsValid = ValidateImage();
+
+        if (!imageIsValid)
+            return;
+
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            var birthDate = GetAgeAsDateTime();
+            var petInfo = new PetInfoRequest(data.Info.Name, data.Info.Description, birthDate, data.Info.Status, base64Image);
+            var petRequest = new PetRequest(data.PartnerId, petInfo, data.Healthy, data.Caracteristics);
+
+            var result = await httpService.PostAsync<PetRequest, CustomPetResponse>($"/pets-control/pets", petRequest);
+
+            if (result.IsSuccess)
+            {
+                navigator.NavigateTo($"/backoffice/pets/{result.Content.Data.Id}");
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Warning, "Erro", "Não foi possível cadastrar o pet nesse momento. Tente novamente mais tarde!");
+            }
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+        }
+
+        isLoading = false;
+    }
+
+    private DateTime GetAgeAsDateTime()
+    {
+        return ageUnit switch
+        {
+            AgeUnit.Year => DateTime.Now.AddYears(-age),
+            AgeUnit.Month => DateTime.Now.AddMonths(-age),
+            _ => DateTime.Now
+        };
+    }
+
+    private void ConvertEntityAge(DateTime birthDate)
+    {
+        var now = DateTime.Now;
+        var years = now.Year - birthDate.Year;
+
+        if (years == 0)
+        {
+            var months = now.Month - birthDate.Month;
+
+            age = months;
+            ageUnit = AgeUnit.Month;
+        }
+
+        age = years;
+        ageUnit = AgeUnit.Year;
+    }
+
+    private void UpdateDescriptionSize(ChangeEventArgs e)
+    {
+        descrioptionSize = e.Value?.ToString().Length ?? 0;
+    }
+
+    private bool ValidateImage()
+    {
+        if (!string.IsNullOrEmpty(data.Info.ProfileImageUrl) || !string.IsNullOrEmpty(base64Image))
+            return true;
+
+        notify.ShowMessage(ToastType.Warning, "Aviso", "Parece que você esqueceu de escolher uma Imagem para nosso cãopanheiro!");
+
+        isLoading = false;
+
+        return false;
+
+    }
+
+    private async Task<string> ImageUrlToBase64(string imageUrl)
+    {
+        if (string.IsNullOrEmpty(imageUrl)) return string.Empty;
+
+        try
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                byte[] imageBytes = await client.GetByteArrayAsync(imageUrl);
+                return Convert.ToBase64String(imageBytes);
+            }
+        }
+        catch (Exception ex)
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Erro ao converter a imagem para base64: " + ex.Message);
+            throw;
+        }
+    }
+}

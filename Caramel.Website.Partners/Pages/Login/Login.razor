@@ -1,0 +1,108 @@
+﻿@page "/"
+@using Caramel.Website.Partners.Layout.Components.Custom
+@using Caramel.Website.Partners.Models.Enums
+@using Caramel.Website.Partners.Models.Requests
+@using System.Text.Json
+@using Caramel.Website.Partners.Models.Requests.Auth
+@using Caramel.Website.Partners.Models.Responses
+@using System.Text.Encodings.Web
+@using Caramel.Website.Partners.Models.Responses.Auth
+@using System.Net
+@inject HttpService httpService
+@inject NavigationManager Navigator
+@inject ISessionStorageService sessionStorage
+
+<PageTitle>Login</PageTitle>
+
+<div class="card-login">
+
+    <img src="img/wave.svg" alt="wave-img" class="wave-img-mobile" />
+
+    <div class="card-body">
+        <h2 class="card-title text-center mb-4">BEM VINDO AO CARAMEL!</h2>
+        <p class="text-center">Digite seu <span>Email</span> e <span>Senha</span> e acesse nosso site de gerenciamento.</p>
+
+        <EditForm Model="@request" OnValidSubmit="HandleLogin">
+            <div class="mb-3">
+                <label for="Email" class="form-label login-label">Email</label>
+                <InputText @bind-Value="request.Email" type="email" id="Email" class="form-control login-input" placeholder="Digite seu Email..." required />
+            </div>
+
+            <div class="mb-3">
+                <label for="Password" class="form-label login-label">Senha</label>
+                <InputText @bind-Value="request.Password" type="password" id="Password" class="form-control login-input" placeholder="Digite sua Senha..." required />
+            </div>
+
+            <div class="d-flex justify-content-end mb-0">
+                <p>Esqueceu a Senha? <a href="/reset/email" class="password-reset-link">Clique aqui!</a></p>
+            </div>
+
+            <Button Type="BlazorBootstrap.ButtonType.Submit" class="btn login-btn w-100 mb-3" disabled="@isLoading">
+                <span>
+                    Acessar
+                </span>
+                @if (isLoading)
+                {
+                    <i id="loader" class="bx bx-loader bx-spin"></i>
+                }
+            </Button>
+            <a class="btn btn-outline-secondary-login w-100" href="/confirmation">Primeiro Acesso</a>
+        </EditForm>
+    </div>
+</div>
+
+<CustomToastNotification @ref="notify" Messages="messages" />
+
+@code {
+    private CustomToastNotification notify;
+    public List<ToastMessage> messages = new();
+    private bool isLoading = false;
+    private AuthRequest request = new AuthRequest();
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+
+        var result = await httpService.PostAsync<AuthRequest, AuthResponse>("/auth/partner/authenticate", request);
+
+        if (result.StatusCode == HttpStatusCode.OK)
+        {
+            var response = result.Content;
+
+            sessionStorage.SetItem("id", response.Token.Id);
+            sessionStorage.SetItem("name", response.Token.Name);
+            sessionStorage.SetItem("image", response.Token.ProfileImageUrl);
+            sessionStorage.SetItem("role", response.Token.Role);
+            sessionStorage.SetItem("token", response.Token.Token);
+            sessionStorage.SetItem("validTo", response.Token.ValidTo);
+
+            if (response.Token.Role == Roles.Admin)
+                Navigator.NavigateTo("/backoffice/partners");
+            else
+                Navigator.NavigateTo("/backoffice/dashboard");
+        }
+        else if (result.StatusCode == HttpStatusCode.UnprocessableEntity ||
+                 result.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            notify.ShowMessage(ToastType.Warning, "Aviso", "Usuário ou Senha Incorretos!");
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Não foi possível realizar a Autenticação. Tente novamente mais tarde!");
+        }
+
+        isLoading = false;
+    }
+
+    #region SetPageName
+    protected override void OnInitialized()
+    {
+        SetPageName();
+    }
+
+    private void SetPageName()
+    {
+        sessionStorage.SetItem("pageName", "Login");
+    }
+    #endregion
+}

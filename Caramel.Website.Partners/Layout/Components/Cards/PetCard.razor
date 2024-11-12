@@ -1,0 +1,155 @@
+﻿@using BlazorBootstrap
+@using Caramel.Website.Partners.Layout.Components.Custom
+@using Caramel.Website.Partners.Layout.Components.Custom.ProfileImage
+@using Caramel.Website.Partners.Models.Entities
+@using Caramel.Website.Partners.Models.Entities.Partner
+@using Caramel.Website.Partners.Models.Entities.Pets
+@using Caramel.Website.Partners.Models.Enums
+@using Caramel.Website.Partners.Models.Enums.Pets
+@using System.Net
+@inject NavigationManager navigator
+@inject ISessionStorageService sessionStorage
+@inject HttpService httpService
+
+<div class="card">
+    <div class="card-container">
+        <div class="partner-image-container">
+            @if (!string.IsNullOrEmpty(Data.Info.ProfileImageUrl))
+            {
+                <CustomCardProfileImage Username="@Data.Info.Name" ProfileImageUrl="@Data.Info.ProfileImageUrl" />
+            }
+            else
+            {
+                <CustomCardProfileImage Username="@Data.Info.Name" ProfileImageUrl="" />
+            }
+        </div>
+        <div class="card-infos">
+            <div class="card-infos-top">
+                <span class="partner-name">@Data.Info.Name</span>
+                @if (Data.Healthy.Castrated == CastratedStatus.Castrated)
+                {
+                    <Tooltip Class="d-inline-block" Title="Castrado">
+                        <div class="castrated-status-tag">
+                            <i class="bx bx-cut" />
+                        </div>
+                    </Tooltip>
+                }
+                @if (Data.Healthy.Vaccinated == VaccinatedStatus.Vaccinated)
+                {
+                    <Tooltip Class="d-inline-block" Title="Vacinado">
+                        <div class="vaccinated-status-tag">
+                            <i class="bx bx-injection" />
+                        </div>
+                    </Tooltip>
+                }
+            </div>
+
+            <div class="card-infos-bottom">
+                <span class="partner-data">
+                    <span class="info-type">Idade:</span>
+                    @GetAge(Data.Info.BirthDate)
+                </span>
+
+                <span class="partner-data">
+                    <span class="info-type">Sexo:</span>
+                    @(Data.Caracteristics.Sex == PetSex.Male ? "Macho" : "Fêmea")
+                </span>
+
+                <span class="partner-data">
+                    <span class="info-type">Data Cadastro:</span>
+                    @Data.Info.RegisterDate.ToShortDateString()
+                </span>
+            </div>
+        </div>
+        <div class="card-options">
+            <button type="button" @onclick="HandleDetails" class="btn btn-details">
+                Detalhes
+                <i class="bx bx-search-alt" />
+            </button>
+
+            <Dropdown Class="dropdown-status-change">
+                <DropdownToggleButton>@statusName</DropdownToggleButton>
+                <DropdownMenu>
+                    <DropdownItem Type="DropdownItemType.Button" @onclick="async () => await HandlePetStatusChange(Data.Id, PetStatus.Available)" Disabled="@(Data.Info.Status == PetStatus.Available)">Disponível</DropdownItem>
+                    <DropdownItem Type="DropdownItemType.Button" @onclick="async () => await HandlePetStatusChange(Data.Id, PetStatus.AdoptOng)" Disabled="@(Data.Info.Status == PetStatus.AdoptOng)">Adotado Ong</DropdownItem>
+                    <DropdownItem Type="DropdownItemType.Button" @onclick="async () => await HandlePetStatusChange(Data.Id, PetStatus.AdoptApp)" Disabled="@(Data.Info.Status == PetStatus.AdoptApp)">Adotado App</DropdownItem>
+                    <DropdownItem Type="DropdownItemType.Button" @onclick="async () => await HandlePetStatusChange(Data.Id, PetStatus.Unavailable)" Disabled="@(Data.Info.Status == PetStatus.Unavailable)">Indisponível</DropdownItem>
+                </DropdownMenu>
+            </Dropdown>
+        </div>
+    </div>
+</div>
+
+<CustomToastNotification @ref="notify" Messages="messages" />
+
+@code {
+    [Parameter]
+    public Pet Data { get; set; }
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    private CustomToastNotification notify;
+    private List<ToastMessage> messages = new();
+
+    private string statusName = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        statusName = @PetStatusEnumMapper.Mapper[Data.Info.Status];
+        StateHasChanged();
+    }
+
+    private void HandleDetails()
+    {
+        navigator.NavigateTo($"/backoffice/pets/{Data.Id}");
+    }
+
+    private async Task HandlePetStatusChange(string petId, PetStatus newPetStatus)
+    {
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            var result = await httpService.PatchAsync($@"pets-control/pets/{petId}/status?status={(int)newPetStatus}");
+
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+                notify.ShowMessage(ToastType.Success, "Sucesso!", "Status do Pet alterado com sucesso!");
+                statusName = @PetStatusEnumMapper.Mapper[newPetStatus];
+                Data.Info.Status = newPetStatus;
+                StateHasChanged();
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Danger, "Erro", "Não foi possível alterar o Status do Pet. Tente novamente mais tarde!");
+            }
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+        }
+    }
+
+    public string GetAge(DateTime birthDate)
+    {
+        var today = DateTime.Today;
+        var ageInYears = today.Year - birthDate.Year;
+
+        if (birthDate > today.AddYears(-ageInYears))
+            ageInYears--;
+
+        if (ageInYears >= 1)
+            return $"{ageInYears} {(ageInYears == 1 ? "ano" : "anos")}";
+        else
+        {
+            var ageInMonths = ((today.Year - birthDate.Year) * 12) + today.Month - birthDate.Month;
+
+            if (today.Day < birthDate.Day)
+                ageInMonths--;
+
+            return $"{ageInMonths} {(ageInMonths == 1 ? "mês" : "meses")}";
+        }
+    }
+
+}

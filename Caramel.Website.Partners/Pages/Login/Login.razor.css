@@ -1,0 +1,12 @@
+﻿.password-reset-link {
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--seal-brown-10) !important;
+    color: var(--seal-brown-10) !important;
+    transition: transform 0.5s ease !important;
+}
+
+    .password-reset-link:hover {
+        transform: scale(1.1);
+    }
+

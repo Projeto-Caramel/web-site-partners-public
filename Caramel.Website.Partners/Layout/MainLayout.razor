@@ -1,0 +1,77 @@
+﻿@using Caramel.Website.Partners.Layout.Components.Custom
+@using Caramel.Website.Partners.Layout.Components.Custom.ProfileImage
+@using Caramel.Website.Partners.Pages.Login
+@inherits LayoutComponentBase
+@inject NavigationManager NavManager
+@inject ISessionStorageService sessionStorage
+
+@if (!NavManager.Uri.Contains("backoffice"))
+{
+    <div class="page page-login">
+        <aside class="login-aside">
+            <img src="img/login-background.svg" alt="Background" />
+        </aside>
+
+        <main>
+            @Body
+        </main>
+    </div>
+}
+else
+{
+    <MudThemeProvider/>
+    <div class="page">
+        <div class="sidebar">
+            <NavMenu />
+        </div>
+
+        <main>
+            <div class="top-row px-4">
+                <div class="title">
+                    @pageName
+                </div>
+                <CustomProfileImageHeader/>
+                <span>@username</span>
+            </div>
+
+            <article class="d-flex content px-4 article" style="height: calc(100% - 3.5rem)">
+                @Body
+            </article>
+        </main>
+    </div>
+}
+
+@code {
+    private string username;
+    private string imageProfileBase64;
+    private string pageName;
+
+    protected override void OnInitialized()
+    {
+        username = sessionStorage.GetItem<string>("name");
+        pageName = GetPageNameFromUri(NavManager.Uri);
+    }
+
+    private string GetPageNameFromUri(string uri)
+    {
+        var pageName = sessionStorage.GetItem<string>("pageName");
+
+        return pageName; 
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            NavManager.LocationChanged += HandleLocationChanged;
+        }
+    }
+
+    private void HandleLocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        pageName = GetPageNameFromUri(e.Location);
+        username = sessionStorage.GetItem<string>("name");
+
+        StateHasChanged();
+    }
+}

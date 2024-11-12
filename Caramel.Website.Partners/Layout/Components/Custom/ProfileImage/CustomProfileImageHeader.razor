@@ -1,0 +1,24 @@
+﻿@inject ISessionStorageService session
+
+@if (!string.IsNullOrEmpty(profileImageUrl))
+{
+    <img class="img-profile" src="@profileImageUrl" alt="Nome do Parceiro" />
+}
+else
+{
+    <div class="alternative-profile">
+        @acronym
+    </div>
+}
+
+@code {
+    string profileImageUrl;
+    string acronym = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        profileImageUrl = session.GetItem<string>("image");
+        var name = session.GetItem<string>("name");
+        acronym = string.IsNullOrEmpty(name) ? string.Empty : name.Substring(0, 2).ToUpper();
+    }
+}

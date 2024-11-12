@@ -1,0 +1,89 @@
+﻿@using Caramel.Website.Partners.Models
+
+<BarChart @ref="barChart" class="bar-chart" />
+
+@code {
+    [Parameter]
+    public BarChartData Data { get; set; }
+    [Parameter]
+    public string MainLabel { get; set; }
+    [Parameter]
+    public string SecondaryLabel { get; set; }
+
+    private BarChart barChart = default!;
+    private BarChartOptions barChartOptions = default!;
+    private ChartData chartData = default!;
+
+    protected override void OnInitialized()
+    {
+        var colors = ColorUtility.CategoricalTwelveColors;
+        var labels = Data.Labels;
+
+        var datasets = new List<IChartDataset>();
+        datasets.Add(GetOngDataset());       
+        datasets.Add(GetAppDataset());
+
+        chartData = new ChartData
+            {
+                Labels = labels,
+                Datasets = datasets
+            };
+
+        ConfigureBarChart();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await barChart.InitializeAsync(chartData, barChartOptions);
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private IChartDataset GetOngDataset()
+    {
+        var ongsDataset = new BarChartDataset()
+            {
+                Label = MainLabel,
+                Data = Data.MainData,
+                BackgroundColor = new List<string> { "#582704" },
+                BorderColor = new List<string> { "#582704" },
+                BorderWidth = new List<double> { 0 },
+            };
+
+        return ongsDataset;
+    }
+
+    private IChartDataset GetAppDataset()
+    {
+        var appDataset = new BarChartDataset()
+            {
+                Label = SecondaryLabel,
+                Data = Data.SecondaryData,
+                BackgroundColor = new List<string> { "#BE6C1F" },
+                BorderColor = new List<string> { "#BE6C1F" },
+                BorderWidth = new List<double> { 0 },
+            };
+
+        return appDataset;
+    }
+
+    private void ConfigureBarChart()
+    {
+        barChartOptions = new();
+        barChartOptions.Responsive = true;
+        barChartOptions.Interaction = new Interaction { Mode = InteractionMode.X };
+        barChartOptions.IndexAxis = "x";
+
+        barChartOptions.Scales.X!.Title = new ChartAxesTitle { Text = "Meses", Display = true };
+
+        barChartOptions.Scales.Y!.Title = new ChartAxesTitle { Text = "Quantidades", Display = true };
+
+        barChartOptions.Scales.X.Stacked = true;
+        barChartOptions.Scales.Y.Stacked = true;
+
+        barChartOptions.Plugins.Title = new ChartPluginsTitle { Text = "Histórico de Adoções", Display = true };
+    }
+
+}

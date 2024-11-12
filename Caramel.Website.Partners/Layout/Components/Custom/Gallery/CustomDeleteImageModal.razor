@@ -1,0 +1,58 @@
+﻿@using System.Net.Http.Headers
+@using System.Text.Json
+@using System.Text.Encodings.Web
+@using System.Net
+@inject ISessionStorageService sessionStorage
+@inject NavigationManager navigator
+@inject HttpService httpService
+
+<div class="modal register-modal @(isVisible ? "d-block" : "d-none")" aria-hidden="true" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="w-100">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cadastrar Parceiro</h5>
+                    <i class="bx bx-x" @onclick="HideModal" />
+                </div>
+                <div class="modal-body">
+                    Você irá deletar essa Imagem. Após ser deletada, ela não pode mais ser recuperada, porém, você pode adicioná-la novamente.
+                    <br />
+                    Você tem certeza que deseja continuar?
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-back" @onclick="HideModal">Cancelar</button>
+                    <button type="submit" class="btn btn-save  @(isDisabled ? "disabled" : "")" @onclick="HandleDelete">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<bool> OnImageDeleted { get; set; }
+
+    public List<ToastMessage> messages = new();
+
+    bool isVisible = false;
+    private bool isDisabled = false;
+
+    public async Task HandleDelete()
+    {
+        await OnImageDeleted.InvokeAsync(true);
+
+        HideModal();
+    }
+
+    public void ShowModal()
+    {
+        isVisible = true;
+        StateHasChanged();
+    }
+
+    void HideModal()
+    {
+        isVisible = false;
+        StateHasChanged();
+    }
+}

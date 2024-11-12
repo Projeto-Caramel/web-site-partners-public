@@ -1,0 +1,75 @@
+﻿@using Microsoft.AspNetCore.Components.Forms;
+
+@if (!string.IsNullOrEmpty(imageUrl))
+{
+    <img class="img-profile" src="@imageUrl" alt="Nome do Parceiro" />
+}
+else
+{
+    @if (isLoading)
+    {
+        <div class="alternative-profile">
+            <i class="bx bx-spin bx-loader" style="font-size: 2rem" />
+        </div>
+    }
+    else
+    {
+        <div class="alternative-profile">
+            @acronym
+        </div>
+    }
+}
+
+@if (ShowEditLink)
+{
+    <MudFileUpload T="IBrowserFile" FilesChanged="UploadFile" Accept=".png, .jpg, .jpeg">
+        <ActivatorContent>
+            <a class="file-manager-link">
+                Editar Foto
+                <i class="bx bx-edit-alt" />
+            </a>
+        </ActivatorContent>
+    </MudFileUpload>
+}
+
+@code {
+    [Parameter]
+    public string ProfileImageUrl { get; set; }
+    [Parameter]
+    public string Name { get; set; }
+    [Parameter]
+    public bool ShowEditLink { get; set; } = true;
+    [Parameter]
+    public EventCallback<string> ImageChanged { get; set; }
+    private bool isInitialized;
+    private bool isLoading = false;
+
+    string acronym = string.Empty;
+
+    string imageUrl = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        acronym = string.IsNullOrEmpty(Name) ? string.Empty : Name.Substring(0, 2).ToUpper();
+        imageUrl = ProfileImageUrl;
+    }
+
+    private async Task UploadFile(IBrowserFile file)
+    {
+        isLoading = true;
+
+        const long maxFileSize = 5 * 1024 * 1024; // 5 MB
+        using var stream = file.OpenReadStream(maxFileSize);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        var fileBytes = ms.ToArray();
+
+        var base64Image = Convert.ToBase64String(fileBytes);
+
+        imageUrl = $"data:image/png;base64,{base64Image}";
+
+        await ImageChanged.InvokeAsync(base64Image);
+
+        isLoading = false;
+    }
+}

@@ -1,0 +1,69 @@
+﻿@page "/backoffice/partners/{Id}"
+@using Caramel.Website.Partners.Layout.Components.Cards
+@using Caramel.Website.Partners.Layout.Components.Custom
+@using Caramel.Website.Partners.Layout.Components.Filters
+@using Caramel.Website.Partners.Models.Entities
+@using System.Net.Http.Headers
+@using System.Text.Json
+@using System.Text.Encodings.Web
+@using Caramel.Website.Partners.Models.Entities.Partner
+@using Caramel.Website.Partners.Models.Responses.UsersControl
+@inject ISessionStorageService sessionStorage
+@inject HttpService httpService
+
+<PageTitle>Detalhes</PageTitle>
+
+<PartnerDetailCard Data="partners" />
+
+<CustomToastNotification @ref="notify" Messages="messages" />
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    private Partner partners;
+    private CustomToastNotification notify;
+    public List<ToastMessage> messages = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        partners = await GetPartner();
+    }
+
+    private async Task<Partner> GetPartner()
+    {
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            var result = await httpService.GetAsync<CustomResponse<Partner>>($"/users-control/partner?id={Id}");
+
+            if (result.IsSuccess)
+            {
+                return result.Content.Data;
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Danger, "Erro", "Recuperar os Parceiros nesse momento. Tente novamente mais tarde!");
+            }
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+        }
+
+        return new Partner();
+    }
+
+    #region SetPageName
+    protected override void OnInitialized()
+    {
+        SetPageName();
+    }
+
+    private void SetPageName()
+    {
+        sessionStorage.SetItem("pageName", "Parceiros");
+    }
+    #endregion
+}

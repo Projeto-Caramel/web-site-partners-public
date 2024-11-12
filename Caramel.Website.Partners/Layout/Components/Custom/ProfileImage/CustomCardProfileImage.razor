@@ -1,0 +1,25 @@
+﻿@if (!string.IsNullOrEmpty(ProfileImageUrl))
+{
+    <img class="img-profile" src="@ProfileImageUrl" alt="Nome do Parceiro" />
+}
+else
+{
+    <div class="alternative-profile">
+        @acronym
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string ProfileImageUrl { get; set; }
+    [Parameter]
+    public string Username { get; set; }
+
+    string acronym = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        acronym = string.IsNullOrEmpty(Username) ? string.Empty : Username.Substring(0, 2).ToUpper();
+        StateHasChanged();
+    }
+}

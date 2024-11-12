@@ -1,0 +1,155 @@
+﻿@using Caramel.Website.Partners.Models.Entities.Pets.Gallery
+@using Caramel.Website.Partners.Models.Requests.PetsControl.Gallery
+@using Caramel.Website.Partners.Models.Responses.Pets
+@using Caramel.Website.Partners.Models.Responses.UsersControl
+@using System.Text;
+@using System.Text.Json
+@inject IJSRuntime JS
+@inject ISessionStorageService sessionStorage
+@inject HttpService httpService
+
+@if (Image != null && !string.IsNullOrEmpty(imageUrl))
+{
+    <div class="gallery-picture" @onclick='() => deleteImageModal.ShowModal()'>
+        <img src="@Image.ImageUrl" alt="Gallery">
+        <div class="delete-hover">
+            <i class='bx bx-trash' />
+        </div>
+    </div>
+}
+else
+{
+    <div class="w-100">
+        <MudFileUpload T="IBrowserFile" FilesChanged="UploadFile" Accept=".png, .jpg, .jpeg" Class="w-100">
+            <ActivatorContent>
+                <div class="gallery-picture">
+                    <i class="bx bx-plus-circle" />
+                </div>
+            </ActivatorContent>
+        </MudFileUpload>
+    </div>
+}
+
+<CustomToastNotification @ref="notify" Messages="messages" />
+<CustomImageEditor @ref="modal" OnImageCropped="HandleImageCropped" Image="@croppedImage" />
+<CustomDeleteImageModal @ref="deleteImageModal" OnImageDeleted="HandleDeleteConfirmation" />
+
+
+@code {
+    [Parameter]
+    public PetGalleryImage Image { get; set; } = new();
+
+    [Parameter]
+    public string PetId { get; set; }
+
+    private string imageUrl { get; set; }
+    private string base64Image { get; set; }
+    private bool isLoading = false;
+
+    private CustomImageEditor modal;
+    private CustomDeleteImageModal deleteImageModal;
+    private string croppedImage = null;
+
+    private CustomToastNotification notify;
+    private List<ToastMessage> messages = new();
+
+    string acronym = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        StateHasChanged();
+        if (Image is not null)
+            imageUrl = Image.ImageUrl;
+    }
+
+    private async Task UploadFile(IBrowserFile file)
+    {
+        const long maxFileSize = 5 * 1024 * 1024; // 5 MB
+        using var stream = file.OpenReadStream(maxFileSize);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        var fileBytes = ms.ToArray();
+
+        croppedImage = Convert.ToBase64String(fileBytes);
+
+        modal.ShowModal();
+    }
+
+    private async Task HandleImageCropped(string newBase64Image)
+    {
+        isLoading = true;
+
+        if (Image == null) Image = new();
+
+        base64Image = newBase64Image;
+        imageUrl = $"data:image/png;base64,{base64Image}";
+
+        await AddImageAsync();
+
+        isLoading = false;
+
+        modal.HideModal();
+    }
+
+    private async Task AddImageAsync()
+    {
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            PetGalleryImageRequest request = new(PetId, base64Image);
+
+            var jsonTest = JsonSerializer.Serialize(request);
+
+            var result = await httpService.PostAsync<PetGalleryImageRequest, CustomPetGalleryPictureResponse>($"/pets-control/pets/gallery", request);
+
+            if (result.IsSuccess)
+            {
+                Image = result.Content.Data;
+                notify.ShowMessage(ToastType.Success, "Sucesso", "Imagem adicionada com sucesso!");
+                StateHasChanged();
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Warning, "Aviso", "Não foi possível Adicionar uma Imagem nesse momento. Tente novamente mais tarde!");
+            }
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+        }
+    }
+
+    private async Task HandleDeleteConfirmation(bool confirmed)
+    {
+        if (confirmed)
+            await DeleteImageAsync();
+    }
+
+    private async Task DeleteImageAsync()
+    {
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
+        {
+            var result = await httpService.DeleteAsync<object>($"/pets-control/pets/gallery/{Image.Id}?imageId={Image.Id}", null);
+
+            if (result.IsSuccess)
+            {
+                Image = null;
+                imageUrl = null;
+                notify.ShowMessage(ToastType.Success, "Sucesso", "Imagem removida com sucesso!");
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Warning, "Aviso", "Não foi possível remover uma Imagem nesse momento. Tente novamente mais tarde!");
+            }
+        }
+        else
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+        }
+    }
+}

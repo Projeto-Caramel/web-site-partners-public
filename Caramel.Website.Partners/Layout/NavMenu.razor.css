@@ -1,0 +1,124 @@
+.navbar, .nav-scrollable {
+    background-color: var(--seal-brown-original) !important;
+}
+
+.top-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    margin: 0 !important;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 0 !important;
+}
+
+    .navbar-brand img {
+        width: 100%;
+    }
+
+.menu-title {
+    color: var(--caramel-medium-70);
+    font-weight: 600;
+    padding: 20px 30px;
+}
+
+.custom-nav {
+    display: flex !important;
+    justify-content: space-between
+}
+
+.nav-item a {
+    display: flex !important;
+    align-content: center !important;
+    justify-content: flex-start !important;
+    gap: 20px !important;
+}
+
+    .nav-item a i {
+        font-size: 1.5rem;
+    }
+
+    .nav-item a span {
+        width: 100%;
+    }
+
+.nav-item {
+    font-size: 0.9rem;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-bottom: 0.5rem;
+    width: 100%
+}
+
+    .nav-item:first-of-type {
+        padding-top: 1rem;
+    }
+
+    .nav-item:last-of-type {
+        padding-bottom: 1rem;
+    }
+
+    .nav-item ::deep a {
+        display: flex !important;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 10px;
+        color: var(--brown-90);
+        border-radius: 5px;
+        font-weight: 800;
+    }
+
+        .nav-item ::deep a.active {
+            background-color: var(--caramel-medium-90);
+            color: var(--seal-brown-original);
+            font-weight: 800;
+            transition: transform 0.5s ease;
+        }
+
+            .nav-item ::deep a.active span {
+                border-right: 3px solid var(--seal-brown-original);
+                border-radius: 2px;
+            }
+
+        .nav-item ::deep a:hover {
+            transform: scale(1.05);
+        }
+
+.nav-item-account ::deep a {
+    border: 3px solid var(--caramel-medium-90);
+}
+
+.options-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (min-width: 641px) {
+    .navbar-toggler {
+        display: none;
+    }
+
+    .collapse {
+        /* Never collapse the sidebar for wide screens */
+        display: block;
+    }
+
+    .nav-scrollable {
+        height: 100%;
+    }
+}
+
+@media (max-width: 641px) {
+    .navbar-brand {
+        width: 160px !important;
+    }
+}
