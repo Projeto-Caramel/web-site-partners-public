@@ -9,6 +9,7 @@
 @using System.Text.Encodings.Web
 @using System.Net.Http.Headers
 @using Caramel.Website.Partners.Models.Requests.PetsControl
+@using Caramel.Website.Partners.Models.Responses.Common
 @using Caramel.Website.Partners.Models.Responses.Pets
 @using Caramel.Website.Partners.Models.Responses.UsersControl
 @inject ISessionStorageService sessionStorage
@@ -210,7 +211,7 @@
         <div id="details-info-container">
             <span id="detail-info-title">Galeria de Fotos</span>
 
-            <CustomGallery PetId="@Id"/>
+            <CustomGallery PetId="@Id" />
         </div>
 
         <div class="options mb-3">
@@ -385,20 +386,29 @@
 
     private async Task<string> ImageUrlToBase64(string imageUrl)
     {
-        if (string.IsNullOrEmpty(imageUrl)) return null;
+        if (string.IsNullOrEmpty(imageUrl)) return string.Empty;
 
-        try
+        var token = sessionStorage.GetItem<string>("token");
+        var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
+        if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
         {
-            using (HttpClient client = new HttpClient())
+            var result = await httpService.GetAsync<CustomResponse<Base64ImageRequest>>($"pets-control/pets/{data.Id}/base64");
+
+            if (result.IsSuccess)
             {
-                byte[] imageBytes = await client.GetByteArrayAsync(imageUrl);
-                return Convert.ToBase64String(imageBytes);
+                return result.Content.Data.Base64Image;
+            }
+            else
+            {
+                notify.ShowMessage(ToastType.Danger, "Erro", "Não foi possível buscar a imagem do usuário. Tente novamente mais tarde!");
             }
         }
-        catch (Exception ex)
+        else
         {
-            notify.ShowMessage(ToastType.Danger, "Erro", "Erro ao converter a imagem para base64: " + ex.ToString());
-            throw;
+            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
         }
+
+        return string.Empty;
     }
 }
