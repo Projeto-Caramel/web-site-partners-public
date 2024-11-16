@@ -47,7 +47,7 @@
             <div class="card-infos-bottom">
                 <span class="partner-data">
                     <span class="info-type">Idade:</span>
-                    @GetAge(Data.Info.BirthDate)
+                    @GetAge(Data.Info.BirthDate.AddHours(-3))
                 </span>
 
                 <span class="partner-data">
@@ -134,19 +134,25 @@
     public string GetAge(DateTime birthDate)
     {
         var today = DateTime.Today;
+        birthDate = birthDate.Date;
+
         var ageInYears = today.Year - birthDate.Year;
 
         if (birthDate > today.AddYears(-ageInYears))
             ageInYears--;
 
         if (ageInYears >= 1)
+        {
             return $"{ageInYears} {(ageInYears == 1 ? "ano" : "anos")}";
+        }
         else
         {
-            var ageInMonths = ((today.Year - birthDate.Year) * 12) + today.Month - birthDate.Month;
+            var ageInMonths = (today.Year - birthDate.Year) * 12 + today.Month - birthDate.Month;
 
             if (today.Day < birthDate.Day)
+            {
                 ageInMonths--;
+            }
 
             return $"{ageInMonths} {(ageInMonths == 1 ? "mês" : "meses")}";
         }
