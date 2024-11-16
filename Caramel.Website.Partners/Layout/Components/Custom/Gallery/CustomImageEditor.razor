@@ -19,7 +19,13 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-back" @onclick="HideModal">Cancelar</button>
-                    <button type="submit" class="btn btn-save  @(saveIsDisabled ? "disabled" : "")" @onclick="GetCroppedImageAsync">Confirmar</button>
+                    <button type="submit" class="btn btn-save" disabled="@isLoading" @onclick="GetCroppedImageAsync">
+                        Confirmar
+                        @if (isLoading)
+                        {
+                            <i id="loader" class="bx bx-loader bx-spin"></i>
+                        }
+                    </button>
                 </div>
             </div>
         </div>
@@ -44,6 +50,7 @@
 
     private bool modalIsVisible = false;
     private bool saveIsDisabled = true;
+    private bool isLoading = false;
 
     private async void OnImageLoaded()
     {
@@ -63,6 +70,9 @@
 
     public async Task GetCroppedImageAsync()
     {
+        isLoading = true;
+        StateHasChanged();
+
         await editor.CropAsync();
 
         var croppedImageBytes = await editor.GetImageDataAsync();
@@ -70,6 +80,8 @@
         var base64Image = Convert.ToBase64String(croppedImageBytes);
 
         await OnImageCropped.InvokeAsync(base64Image);
+
+        isLoading = false;
     }
 
     public void ShowModal()

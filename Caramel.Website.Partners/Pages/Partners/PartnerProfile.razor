@@ -216,14 +216,11 @@
     {
         if (string.IsNullOrEmpty(imageUrl)) return string.Empty;
 
-        var id = sessionStorage.GetItem<string>("id");
         var token = sessionStorage.GetItem<string>("token");
         var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
-
         if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
         {
-            var result = await httpService.GetAsync<CustomResponse<Base64ImageRequest>>($"/users-control/partners/{id}/base64");
-
+            var result = await httpService.GetAsync<CustomResponse<Base64ImageRequest>>($"pets-control/pets/{data.Id}/base64");
             if (result.IsSuccess)
             {
                 return result.Content.Data.Base64Image;
@@ -237,7 +234,6 @@
         {
             notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
         }
-
         return string.Empty;
     }
 

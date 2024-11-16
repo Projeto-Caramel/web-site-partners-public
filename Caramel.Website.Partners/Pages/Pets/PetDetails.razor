@@ -211,7 +211,7 @@
         <div id="details-info-container">
             <span id="detail-info-title">Galeria de Fotos</span>
 
-            <CustomGallery PetId="@Id" />
+            <CustomGallery PetId="@Id"/>
         </div>
 
         <div class="options mb-3">
@@ -390,11 +390,9 @@
 
         var token = sessionStorage.GetItem<string>("token");
         var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
-
         if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
         {
             var result = await httpService.GetAsync<CustomResponse<Base64ImageRequest>>($"pets-control/pets/{data.Id}/base64");
-
             if (result.IsSuccess)
             {
                 return result.Content.Data.Base64Image;
@@ -408,7 +406,6 @@
         {
             notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
         }
-
         return string.Empty;
     }
 }
