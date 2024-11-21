@@ -6,6 +6,7 @@
 @using System.Text.Json
 @using Caramel.Website.Partners.Models.Entities.Partner
 @using Caramel.Website.Partners.Models.Requests.UsersControl
+@using Caramel.Website.Partners.Models.Responses.Common
 @using Caramel.Website.Partners.Models.Responses.UsersControl
 @using System.Text.Encodings.Web
 @inject ISessionStorageService sessionStorage
@@ -153,9 +154,9 @@
         {
             var result = await httpService.GetAsync<CustomResponse<Partner>>($"/users-control/partner?id={id}");
 
-            if (result.IsSuccess) 
+            if (result.IsSuccess)
                 return result.Content.Data;
-            else 
+            else
                 notify.ShowMessage(ToastType.Danger, "Erro", "Não foi possível buscar o usuário. Tente novamente mais tarde!");
         }
         else
@@ -174,7 +175,7 @@
 
         if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
         {
-            var result = await httpService.PutAsync<PartnerUpdateRequest,CustomResponse<Partner>>($"/users-control/partners?id={id}", new PartnerUpdateRequest(data, base64Image));
+            var result = await httpService.PutAsync<PartnerUpdateRequest, CustomResponse<Partner>>($"/users-control/partners?id={id}", new PartnerUpdateRequest(data, base64Image));
 
             if (result.IsSuccess)
             {
@@ -217,20 +218,15 @@
 
         var token = sessionStorage.GetItem<string>("token");
         var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
+
         if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
         {
-            var result = await httpService.GetAsync<CustomResponse<Base64ImageRequest>>($"pets-control/pets/{data.Id}/base64");
+            var result = await httpService.GetAsync<CustomResponse<Base64ImageRequest>>($"users-control/partners/{data.Id}/base64");
+
             if (result.IsSuccess)
-            {
-                byte[] imageBytes = await client.GetByteArrayAsync(imageUrl);
-                return Convert.ToBase64String(imageBytes);
-            }
+                return result.Content.Data.Base64Image;
         }
-        catch (Exception ex)
-        {
-            notify.ShowMessage(ToastType.Danger, "Erro", "Erro ao converter a imagem para base64: " + ex.Message);
-            throw;
-        }
+
         return string.Empty;
     }
 
