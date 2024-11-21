@@ -211,7 +211,7 @@
         <div id="details-info-container">
             <span id="detail-info-title">Galeria de Fotos</span>
 
-            <CustomGallery PetId="@Id" />
+            <CustomGallery PetId="@Id"/>
         </div>
 
         <div class="options mb-3">
@@ -386,7 +386,7 @@
 
     private async Task<string> ImageUrlToBase64(string imageUrl)
     {
-        if (string.IsNullOrEmpty(imageUrl)) return string.Empty;
+        if (string.IsNullOrEmpty(imageUrl)) return null;
 
         var token = sessionStorage.GetItem<string>("token");
         var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
@@ -395,18 +395,8 @@
         {
             var result = await httpService.GetAsync<CustomResponse<Base64ImageRequest>>($"pets-control/pets/{data.Id}/base64");
 
-            if (result.IsSuccess)
-            {
+            if (result.IsSuccess) 
                 return result.Content.Data.Base64Image;
-            }
-            else
-            {
-                notify.ShowMessage(ToastType.Danger, "Erro", "Não foi possível buscar a imagem do usuário. Tente novamente mais tarde!");
-            }
-        }
-        else
-        {
-            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
         }
 
         return string.Empty;

@@ -154,9 +154,9 @@
         {
             var result = await httpService.GetAsync<CustomResponse<Partner>>($"/users-control/partner?id={id}");
 
-            if (result.IsSuccess) 
+            if (result.IsSuccess)
                 return result.Content.Data;
-            else 
+            else
                 notify.ShowMessage(ToastType.Danger, "Erro", "Não foi possível buscar o usuário. Tente novamente mais tarde!");
         }
         else
@@ -175,7 +175,7 @@
 
         if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
         {
-            var result = await httpService.PutAsync<PartnerUpdateRequest,CustomResponse<Partner>>($"/users-control/partners?id={id}", new PartnerUpdateRequest(data, base64Image));
+            var result = await httpService.PutAsync<PartnerUpdateRequest, CustomResponse<Partner>>($"/users-control/partners?id={id}", new PartnerUpdateRequest(data, base64Image));
 
             if (result.IsSuccess)
             {
@@ -216,26 +216,15 @@
     {
         if (string.IsNullOrEmpty(imageUrl)) return string.Empty;
 
-        var id = sessionStorage.GetItem<string>("id");
         var token = sessionStorage.GetItem<string>("token");
         var validTo = Convert.ToDateTime(sessionStorage.GetItem<string>("validTo"));
 
         if (!string.IsNullOrEmpty(token) && validTo >= DateTime.Now)
         {
-            var result = await httpService.GetAsync<CustomResponse<Base64ImageRequest>>($"/users-control/partners/{id}/base64");
+            var result = await httpService.GetAsync<CustomResponse<Base64ImageRequest>>($"users-control/partners/{data.Id}/base64");
 
             if (result.IsSuccess)
-            {
                 return result.Content.Data.Base64Image;
-            }
-            else
-            {
-                notify.ShowMessage(ToastType.Danger, "Erro", "Não foi possível buscar a imagem do usuário. Tente novamente mais tarde!");
-            }
-        }
-        else
-        {
-            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
         }
 
         return string.Empty;
