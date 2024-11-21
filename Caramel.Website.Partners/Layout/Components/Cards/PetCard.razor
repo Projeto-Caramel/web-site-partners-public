@@ -57,7 +57,7 @@
 
                 <span class="partner-data">
                     <span class="info-type">Data Cadastro:</span>
-                    @Data.Info.RegisterDate.ToShortDateString()
+                    @Data.Info.RegisterDate.AddHours(-3).ToShortDateString()
                 </span>
             </div>
         </div>
