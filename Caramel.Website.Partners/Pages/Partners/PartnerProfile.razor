@@ -6,7 +6,6 @@
 @using System.Text.Json
 @using Caramel.Website.Partners.Models.Entities.Partner
 @using Caramel.Website.Partners.Models.Requests.UsersControl
-@using Caramel.Website.Partners.Models.Responses.Common
 @using Caramel.Website.Partners.Models.Responses.UsersControl
 @using System.Text.Encodings.Web
 @inject ISessionStorageService sessionStorage
@@ -223,16 +222,14 @@
             var result = await httpService.GetAsync<CustomResponse<Base64ImageRequest>>($"pets-control/pets/{data.Id}/base64");
             if (result.IsSuccess)
             {
-                return result.Content.Data.Base64Image;
-            }
-            else
-            {
-                notify.ShowMessage(ToastType.Danger, "Erro", "Não foi possível buscar a imagem do usuário. Tente novamente mais tarde!");
+                byte[] imageBytes = await client.GetByteArrayAsync(imageUrl);
+                return Convert.ToBase64String(imageBytes);
             }
         }
-        else
+        catch (Exception ex)
         {
-            notify.ShowMessage(ToastType.Danger, "Erro", "Sua Sessão expirou. Faça login novamente!");
+            notify.ShowMessage(ToastType.Danger, "Erro", "Erro ao converter a imagem para base64: " + ex.Message);
+            throw;
         }
         return string.Empty;
     }

@@ -221,6 +221,7 @@
         data.PartnerId = sessionStorage.GetItem<string>("id");
         data.Info.Status = PetStatus.Available;
         imageUrl = data.Info.ProfileImageUrl;
+        base64Image = await ImageUrlToBase64(data.Info.ProfileImageUrl);
     }
 
     private void HandleBack()
@@ -315,5 +316,24 @@
 
         return false;
 
+    }
+
+    private async Task<string> ImageUrlToBase64(string imageUrl)
+    {
+        if (string.IsNullOrEmpty(imageUrl)) return string.Empty;
+
+        try
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                byte[] imageBytes = await client.GetByteArrayAsync(imageUrl);
+                return Convert.ToBase64String(imageBytes);
+            }
+        }
+        catch (Exception ex)
+        {
+            notify.ShowMessage(ToastType.Danger, "Erro", "Erro ao converter a imagem para base64: " + ex.Message);
+            throw;
+        }
     }
 }
